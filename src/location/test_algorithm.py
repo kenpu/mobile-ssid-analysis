@@ -1,5 +1,6 @@
 from mobile import *
-from algorithm import *
+# from algorithm import *
+from algorithm_multi_merge import *
 from time import time
 
 tl = Timeline(stream_samples())
