@@ -35,7 +35,7 @@
                     var data = [
                     {% for n in my_list %}
                     {
-                        "strength": "{{n[0]}}",
+                        "similarity": "{{n[0]}}",
                         "time": "{{n[1]}}"
                     }{% if loop.last == false %}, {% endif %}
                     {% endfor %}
@@ -73,7 +73,7 @@
                             return xScale(d.time);
                         })
                         .y(function(d) {
-                            return yScale(d.strength);
+                            return yScale(d.similarity);
                         })
                         .interpolate("basis");
                     vis.append('svg:path')
