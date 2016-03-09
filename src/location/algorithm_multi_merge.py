@@ -39,18 +39,26 @@ class Timeline:
         children = self.hierarchy[start : end+1]
         self.hierarchy[start : end+1] = [SampleVector(*children)]
 
+    # Set the similarity of each group to the next group
+    def sim_pass(self):
+        n = len(self.hierarchy)
+        i_max = 0
+        sim_max = self.hierarchy[0].compare(self.hierarchy[1])
+
+        for i in range(n-1):
+            sim = self.hierarchy[i].compare(self.hierarchy[i+1])
+            self.hierarchy[i].sim_to_next = sim
+            if sim > sim_max:
+                i_max, sim_max = i, sim
+
+        return sim_max, i_max
+
+
     def merge_pass(self):
         n = len(self.hierarchy)
         if n > 1:
-            i_max = 0
-            sim_max = self.hierarchy[0].compare(self.hierarchy[1])
 
-            for i in range(n-1):
-                sim = self.hierarchy[i].compare(self.hierarchy[i+1])
-                self.hierarchy[i].sim_to_next = sim
-                if sim > sim_max:
-                    i_max, sim_max = i, sim
-
+            sim_max, i_max = self.sim_pass()
 
             # Merge groups with consecutive max similarity
             i = 0
