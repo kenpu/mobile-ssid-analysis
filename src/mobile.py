@@ -23,14 +23,6 @@ class Reading(object):
     def ssids(self):
         return sorted(x["ssid"] for x in self.bssids.values())
 
-class Cluster(object):
-    def __init__(self):
-        pass
-
-class Hierarchy(object):
-    def __init__(self):
-        pass
-
 
 
 def connect():
