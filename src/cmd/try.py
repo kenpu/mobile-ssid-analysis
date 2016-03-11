@@ -14,4 +14,5 @@ for i, r in enumerate(readings):
         print(i)
 
 print("Duration = %.2f seconds" % (time.time() - start))
+H.print()
 

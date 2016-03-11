@@ -8,6 +8,6 @@ test :
 	python -m test.cluster;
 
 try:
-	export PYTHONPATH=$(PWD)/src; \
+	@export PYTHONPATH=$(PWD)/src; \
 	export MOBILE_DB=$(PWD)/data/ken.sqlite3; \
 	python -m cmd.try

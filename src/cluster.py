@@ -1,8 +1,14 @@
+import random
+
 IDCounter = 0
 
 class Cluster(object):
     children = None
     parent   = None
+
+    __bssid_cache__ = None
+    __readings_cache__ = None
+
     def __init__(self, parent, *children):
         global IDCounter
         self.parent   = parent
@@ -25,6 +31,7 @@ class Cluster(object):
             C = new_left[0]
             C.parent = self
             self.children[0] = C
+            self.nullify_cache()
 
         return self.children[0]
 
@@ -33,6 +40,7 @@ class Cluster(object):
             C = new_right[0]
             C.parent = self
             self.children[1] = C
+            self.nullify_cache()
 
         return self.children[1]
 
@@ -43,11 +51,55 @@ class Cluster(object):
             return self.right().rightmost()
 
     def bssids(self):
+        if self.__bssid_cache__:
+            return self.__bssid_cache__
+
+        result = None
         if self.is_leaf():
             reading = self.children[0]
-            return reading.bssids.keys()
+            result  = reading.bssids.keys()
         else:
-            return self.left().bssids() | self.right().bssids()
+            result = self.left().bssids() | self.right().bssids()
+
+        self.__bssid_cache__ = result
+        return result 
+
+    def leaves(self):
+        if self.__readings_cache__:
+            return self.__readings_cache__
+
+        result = None
+        if self.is_leaf():
+            result = [self]
+        else:
+            result = self.left().leaves() + self.right().leaves()
+        self.__readings_cache__ = result
+
+        return result
+
+    def hetero(self, leaves=None):
+        if leaves == None:
+            leaves = self.leaves()
+
+        min_s = 1
+        for i in range(len(leaves)):
+            Ci = leaves[i]
+            for j in range(i, len(leaves)):
+                Cj = leaves[j]
+                s = sim(Ci, Cj)
+                min_s = min(s, min_s)
+        return min_s
+
+    def stochastic_hetero(self, k=100):
+        leaves = self.leaves()
+        leaves = random.sample(leaves, k) if len(leaves) > k else leaves
+        return self.hetero(leaves)
+
+    def nullify_cache(self):
+        self.__bssid_cache__ = None
+        self.__readings_cache = None
+        if self.parent:
+            self.parent.nullify_cache()
 
 class Hierarchy(object):
     root = None
