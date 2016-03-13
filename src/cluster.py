@@ -3,8 +3,8 @@ import random
 IDCounter = 0
 
 class Cluster(object):
-    children = None
-    parent   = None
+    children    = None
+    parent      = None
 
     __bssid_cache__ = None
     __readings_cache__ = None
