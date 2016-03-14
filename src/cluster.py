@@ -1,4 +1,6 @@
 import random
+import time
+from collections import defaultdict
 
 IDCounter = 0
 
@@ -77,7 +79,31 @@ class Cluster(object):
 
         return result
 
-    def hetero(self, leaves=None):
+    def readings(self):
+        return [C.children[0] for C in self.leaves()]
+
+    def ssid_strength(self):
+        result = defaultdict(float)
+
+        for r in self.readings():
+            for x in r.bssids.values():
+                result[x["ssid"]] += normalize_strength(x["strength"])
+
+        ssids = sorted(result.keys(), key=lambda x: result[x], reverse=1)
+        return [(x, result[x]) for x in ssids]
+
+    def timespan(C):
+        readings = C.readings()
+        if len(readings) == 0:
+            return None
+        else:
+            first, last = readings[0].stamp, readings[-1].stamp
+            t0 = time.mktime(time.strptime(first, "%Y-%m-%d %H:%M:%S"))
+            t1 = time.mktime(time.strptime(last, "%Y-%m-%d %H:%M:%S"))
+            return (first, last, t1 - t0)
+
+
+    def minsim(self, leaves=None):
         if leaves == None:
             leaves = self.leaves()
 
@@ -90,10 +116,10 @@ class Cluster(object):
                 min_s = min(s, min_s)
         return min_s
 
-    def stochastic_hetero(self, k=100):
+    def stochastic_minsim(self, k=100):
         leaves = self.leaves()
         leaves = random.sample(leaves, k) if len(leaves) > k else leaves
-        return self.hetero(leaves)
+        return self.minsim(leaves)
 
     def nullify_cache(self):
         self.__bssid_cache__ = None
@@ -145,7 +171,70 @@ class Hierarchy(object):
         if not indent:
             print("=" * 40)
 
+class Location(object):
+
+    def __init__(self, C):
+        self.clusters = [C]
+
+    def accept(self, C_new, threshold):
+        for C in self.clusters:
+            if sim(C, C_new) > threshold:
+                self.clusters.append(C_new)
+                return True
+        return False
+
+    def total_duration(self):
+        total = 0
+        for C in self.clusters:
+            try:
+                t0, t1, dt = C.timespan()
+                total += dt
+            except:
+                pass
+        return total
+
+    def ssid_strength(self):
+        result = defaultdict(int)
+
+        for C in self.clusters:
+            for ssid, strength in C.ssid_strength():
+                result[ssid] += strength
+
+        ssids = sorted(result.keys(), key=lambda x: result[x], reverse=1)
+        return [(x, result[x]) for x in ssids]
+
 def sim(C1, C2):
     A, B = C1.bssids(), C2.bssids()
     return float(len(A & B)) / len(A | B)
 
+def segment(C, threshold=0.5, k=100):
+    if isinstance(C, Hierarchy):
+        return segment(C.root, threshold)
+    if C.stochastic_minsim(k) >= threshold:
+        return [C]
+    else:
+        A = segment(C.left(), threshold, k) 
+        B = segment(C.right(), threshold, k)
+        return A + B
+
+def locations(tops, threshold=0.1):
+    "Group the segments together as long as their threshold is good."
+    locs = []
+    for i,C in enumerate(tops):
+        if i == 0:
+            locs.append(Location(C))
+        else:
+            accepted = False
+            for L in locs:
+                if L.accept(C, threshold):
+                    accepted = True
+                    break
+            if not accepted:
+                locs.append(Location(C))
+
+    return sorted(locs, key=lambda L: len(L.clusters), reverse=1)
+
+def normalize_strength(dB):
+    if dB <= -100: dB = -100
+    if dB >= 0: dB = 0
+    return dB/100.0 + 1;

@@ -4,10 +4,6 @@ import itertools
 
 DB = os.environ.get("MOBILE_DB")
 
-if not DB:
-    raise Exception("MOBILE_DB not set")
-
-
 class Reading(object):
     stamp = None
     bssids = None
@@ -41,7 +37,8 @@ def stream_raw_readings():
     while True:
         try:
             row = c.fetchone()
-            yield dict(zip(colnames, row))
+            if row[0] and row[1] and row[2]:
+                yield dict(zip(colnames, row))
             if not row:
                 break
         except:
