@@ -1,7 +1,7 @@
-import mobile
-from cluster import *
+import src.mobile
+from src.cluster import *
 from itertools import *
-import json
+import src.json
 
 IDCounter = 0
 
@@ -56,7 +56,7 @@ def get_node(node):
 
 n = 200
 
-R = list(islice(mobile.stream_readings(), 0, n))
+R = list(islice(src.mobile.stream_readings(), 0, n))
 
 H = Hierarchy(R[0])
 
@@ -65,10 +65,10 @@ for r in islice(R, 1, n):
 
 root = get_node(H.root)
 
-print(json.dumps(root, indent=4))
+print(src.json.dumps(root, indent=4))
 
 with open("src/json/hierarchy.json", "w") as outfile:
-    json.dump(root, outfile)
+    src.json.dump(root, outfile)
 
 
 
