@@ -74,7 +74,7 @@ var svg = d3.select("body").append("svg")
 *
 *************************************************/
 
-d3.json("../json/hierarchy.json", function(error, data) {
+d3.json("../json_/hierarchy.json", function(error, data) {
     if (error) throw error;
 
     root = data;

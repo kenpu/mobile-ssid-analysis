@@ -2,6 +2,7 @@ import mobile
 from cluster import *
 from itertools import *
 import json
+import sys
 
 IDCounter = 0
 
@@ -52,6 +53,11 @@ def get_node(node):
 
 
 
+if sys.argv[1:]:
+    mobile.DB = sys.argv[1]
+else:
+    print("Usage: %s <db>" % sys.argv[0])
+    sys.exit()
 
 
 n = 200
@@ -67,7 +73,7 @@ root = get_node(H.root)
 
 print(json.dumps(root, indent=4))
 
-with open("src/json/hierarchy.json", "w") as outfile:
+with open("hierarchy.json", "w") as outfile:
     json.dump(root, outfile)
 
 
