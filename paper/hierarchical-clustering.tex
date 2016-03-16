@@ -3,6 +3,8 @@
 
 \section{Problem Definition}
 
+\label{sec:problem-def}
+
 A mobile device can make a scan.  We refer to each scan as a {\em reading}.
 Each reading is defined as $\left<t(r), \bssid(r)\right>$ where $t(r)$ is
 the timestamp of the reading, and $\bssid(r)\subseteq\mathrm{BSSID}$ is a set of
@@ -11,6 +13,8 @@ BSSID of the wifi hotspots that the scan detected. For each BSSID $b\in
 strength, written respectively as:
 $\ssid(b)$ and $s(b|r)$.  We assume that each BSSID has a unique SSID, while the
 strength of a BSSID is specific to a given reading.
+
+\subsection{Location identification and inference}
 
 \begin{definition}
     A {\em timeline} $T$ is a sequence of readings.  
@@ -30,3 +34,82 @@ Let $\mathcal{L}$ be a (unspecified) finite set of {\em locations}.
         \item {\em Inference} of the location of a given reading.
     \end{enumerate}
 \end{definition}
+
+\subsection{Real-life challenges}
+
+\begin{itemize}
+    \item Power-aware sensing creates highly irregular sampling intervals.
+    \item False positive in the readings - phantom BSSID
+    \item False negatives in the readings - undetected BSSID
+    \item Transient hotspots - while driving
+    \item Non-stationary hotspots
+    \item Location is naturally a hierarchical concept
+    \item Online algorithm
+\end{itemize}
+
+
+\begin{figure*}
+    \begin{verbatim}
+    (defn online-cluster
+        [H tail C-new]
+        (let [root (root H)
+              prev (sibling tail)
+              parent (parent tail)]
+            (cond
+                (= tail root)
+                    (set-root! H (new-cluster root C-new))
+                (closer? (C-new tail) :than (prev tail))
+                    (do
+                        (detach! H tail)
+                        (promote! H prev)
+                        (online-cluster H prev (new-cluster tail C-new)))
+                :else
+                    (do
+                        (online-cluster H parent C-new)))))
+    \end{verbatim}
+\caption{Algorithm to perform online clustering}
+\end{figure*}
+
+\section{The Algorithm}
+
+\subsection{Segmentation}
+
+Given the timeline $T$. We want to partition $T$ into a collection of
+non-overlapping segments $\{S_i\}$, where each $S_i$ is such that all the
+readings $r\in S_i$ are at the same location.
+
+The challenge is that the locations, at this stage, are still unidentified, and
+furthemore, as stated in Section~\ref{sec:problem-def}, we wish to solve the
+multiresolution localization problem.  Thus, instead of partitioning the
+timeline, our objective is to perform a hierarchical segmentation of the
+timeline, as defined in Definition~\ref{def:h-seg}.
+
+\begin{definition}[(Binary) Hierarchical segmentation]
+    A binary hierarhical segmentation of a timeline $T$ is defined as a binary
+    tree of vertices.  The leaf vertices contain a single reading, while the
+    interior vertices have two adjacent vertices as children.
+    \label{def:h-seg}
+\end{definition}
+
+We define the following:
+
+Given a vertex $v$, the readings of $v$, $R(v)$, is given by:
+\begin{itemize}
+    \item If $v\in \mathrm{Leaves}(H)$, then $R(v) = \{r(v)\}$.
+    \item Otherwise, $R(v) = R(\mathrm{left}(v)) \cup R(\mathrm{right}(v))$.
+\end{itemize}
+
+The constraint of $H$ is such that:
+
+\begin{itemize}
+    \item $H$ must form a cover of $T$.  Namely, every reading must belong to
+        some $R(v)$.
+    \item For each vertex $v$, $R(\mathrm{left}(v))$ and $R(\mathrm{right}(v))$
+        are contiguous segments in $T$.
+\end{itemize}
+
+\subsection{Location Identification}
+
+
+
+\subsection{Location Inference}
