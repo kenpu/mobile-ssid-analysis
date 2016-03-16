@@ -1,0 +1,32 @@
+\newcommand{\bssid}{\mathbf{B}}
+\newcommand{\ssid}{\mathrm{BSSID}}
+
+\section{Problem Definition}
+
+A mobile device can make a scan.  We refer to each scan as a {\em reading}.
+Each reading is defined as $\left<t(r), \bssid(r)\right>$ where $t(r)$ is
+the timestamp of the reading, and $\bssid(r)\subseteq\mathrm{BSSID}$ is a set of
+BSSID of the wifi hotspots that the scan detected. For each BSSID $b\in
+\bssid(r)$ detected in the reading, we also have the SSID and the signal
+strength, written respectively as:
+$\ssid(b)$ and $s(b|r)$.  We assume that each BSSID has a unique SSID, while the
+strength of a BSSID is specific to a given reading.
+
+\begin{definition}
+    A {\em timeline} $T$ is a sequence of readings.  
+    We denote $T_i$ as the $i$-th reading of the timeline $T$.
+
+    A {\em segment} of the timeline $S$ is a contiguous subsequence of $T$.
+\end{definition}
+
+Let $\mathcal{L}$ be a (unspecified) finite set of {\em locations}.
+
+\begin{definition}[Location identification]
+    A {\em location identification} problem consists of several subproblems:
+
+    \begin{enumerate}
+        \item {\em Identification} of the distinct locations $\mathcal{L}$ from
+            a given timeline $T$.
+        \item {\em Inference} of the location of a given reading.
+    \end{enumerate}
+\end{definition}
