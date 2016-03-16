@@ -70,9 +70,14 @@ for l in locs:
     location["segments"] = []
     for c in l.clusters:
         d = {}
-        d["start"] = cluster.Cluster.timespan(c)[0]
-        d["end"] = cluster.Cluster.timespan(c)[1]
+        t = cluster.Cluster.timespan(c)[0]
+        d["start"] = t[0:10]+"T"+t[11:16]
+        t = cluster.Cluster.timespan(c)[1]
+        d["end"] = t[0:10]+"T"+t[11:16]
         location["segments"].append(d)
     data.append(location)
 
 print(json.dumps(data, indent=4))
+
+with open("segment.json", "w") as outfile:
+    json.dump(data, outfile)
