@@ -47,24 +47,24 @@ var sim_scale = d3.scale.linear()
 *************************************************/
 
 // SVG properties
-var width = 960;
+var width = 960;    //this will be overwritten
 var height = 600;
 var padding = 40;
 
 // graph properties
-var w = width - padding*2;
+var w = width - padding*2;  //this will be overwritten
 var h = height - padding*2;
 var x_origin = padding;
 var y_origin = padding;
 
+var x_scale = 6;
+var dot_radius = Math.round(x_scale/2);
+var stroke_width = 1;
+
+
 var data;
 
-// create the svg to work with
-var svg = d3.select("body").append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .append("g")
-        .attr("transform", "translate(x_origin, y_origin)");
+
 
 
 /*************************************************
@@ -81,18 +81,113 @@ d3.json("../json_/cluster_time_test.json", function(error, dataset) {
     console.log("opened the file");
 
     data = dataset;
-    console.log("data[0]"+ data[0])
+
+    /***********************************************
+    *
+    * SET UP TIME STUFF
+    *
+    ***********************************************/
     var min_time = data[0].time;
-    console.log("Min time: "+min_time);
     var max_time = Math.max.apply(Math,data.map(function(o){return o.time;}));
 
-
+    console.log("Min time: "+min_time);
     console.log("Max time: "+max_time);
 
+    // Set up timeline scale which is the vertical axis
+    var time_scale = d3.scale.linear()
+        .domain([min_time, max_time])
+        .range([h,0]);
+
+    var yAxis = d3.svg.axis()
+        .scale(time_scale)
+        .orient("left");
 
 
 
+    /***********************************************
+    *
+    * SET UP NUMBER OF READINGS STUFF
+    *
+    ***********************************************/
+    var min_num = data[0].readings;
+    var max_num = data[data.length-1].readings;
 
+    console.log("Min readings: "+min_num);
+    console.log("Max readings: "+max_num);
+
+    w = (max_num - min_num) * x_scale;
+    width = w + 2*padding;
+
+    // Set up timeline scale which is the vertical axis
+    var num_scale = d3.scale.linear()
+        .domain([min_num, max_num])
+        .range([0,w]);
+
+    var xAxis = d3.svg.axis()
+        .scale(num_scale)
+        .orient("bottom");
+
+
+    /***********************************************
+    *
+    * SET UP SVG AND ADD AXIS
+    *
+    ***********************************************/
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", "translate( x_origin , y_origin)");
+
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(" + x_origin + "," + y_origin + ")")
+        .call(yAxis);
+
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(" + x_origin + "," + (y_origin+h) + ")")
+        .call(xAxis);
+
+
+
+    //This is the accessor function we talked about above
+    var lineFunction = d3.svg.line()
+        .x(function(d) { return x_origin + num_scale(d.readings); })
+        .y(function(d) { return y_origin + time_scale(d.time); })
+        .interpolate("linear");
+
+    //The line SVG Path we draw
+    var lineGraph = svg.append("path")
+        .attr("d", lineFunction(data))
+        .attr("stroke", "blue")
+        .attr("stroke-width", stroke_width)
+        .attr("fill", "none");
+
+    svg.selectAll("circle")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("cx", function(d) { return x_origin + num_scale(d.readings); })
+        .attr("cy", function(d) { return y_origin + time_scale(d.time); })
+        .attr("r", dot_radius)
+        .on("mouseover", function(d) {
+            var x_pos = x_origin + num_scale(d.readings) + dot_radius + 5;
+            var y_pos = y_origin + time_scale(d.time) - 70;
+            var msg = "Readings: " + d.readings + "<br>"
+                + "Time: " + d.time;
+
+            d3.select("#tooltip")
+                .style("left", x_pos+"px")
+                .style("top", y_pos+"px")
+                .select("#value")
+                .html(msg);
+            d3.select("#tooltip").classed("hidden", false);
+        })
+        .on("mouseout", function () {
+            d3.select("#tooltip").classed("hidden", true);
+        });
 
 });
 

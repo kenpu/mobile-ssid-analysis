@@ -15,13 +15,13 @@ index_start = 0
 index_finish = 4000
 
 with open("cluster_time.json", "w") as outfile:
-    outfile.writelines("{ \"data\": [ ")
+    outfile.writelines("[ ")
 
 with open("segmentation_time.json", "w") as outfile:
-    outfile.writelines("{ \"data\": [ ")
+    outfile.writelines("[ ")
 
 with open("location_time.json", "w") as outfile:
-    outfile.writelines("{ \"data\": [ ")
+    outfile.writelines("[ ")
 
 
 for total_readings in range(index_start, index_finish):
@@ -60,10 +60,10 @@ for total_readings in range(index_start, index_finish):
 
 
 with open("cluster_time.json", "a") as myfile:
-    myfile.writelines("] } ")
+    myfile.writelines("]")
 
 with open("segmentation_time.json", "a") as myfile:
-    myfile.writelines("] } ")
+    myfile.writelines("]")
 
 with open("location_time.json", "a") as myfile:
-    myfile.writelines("] } ")
+    myfile.writelines("]")
