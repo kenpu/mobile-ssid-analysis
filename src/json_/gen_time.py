@@ -32,7 +32,7 @@ for total_readings in range(index_start, index_finish):
     start = time.time()
     H = cluster.Hierarchy(next(readings))
     for i, r in enumerate(readings):
-        if i == total_readings:
+        if i > total_readings:
             break
         H.append(r)
 

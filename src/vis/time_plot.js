@@ -38,6 +38,17 @@ var sim_scale = d3.scale.linear()
     .nice();
 
 
+// Great function to get url get variables
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    url = url.toLowerCase(); // This is just to avoid case sensitiveness
+    name = name.replace(/[\[\]]/g, "\\$&").toLowerCase();// This is just to avoid case sensitiveness for query parameter name
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
 
 
 /*************************************************
@@ -49,7 +60,7 @@ var sim_scale = d3.scale.linear()
 // SVG properties
 var width = 960;    //this will be overwritten
 var height = 600;
-var padding = 40;
+var padding = 60;
 
 // graph properties
 var w = width - padding*2;  //this will be overwritten
@@ -57,14 +68,12 @@ var h = height - padding*2;
 var x_origin = padding;
 var y_origin = padding;
 
-var x_scale = 6;
+var x_scale = 2;
 var dot_radius = Math.round(x_scale/2);
 var stroke_width = 1;
 
 
 var data;
-
-
 
 
 /*************************************************
@@ -75,12 +84,19 @@ var data;
 
 console.log("about to open the file...");
 
-d3.json("../json_/cluster_time_test.json", function(error, dataset) {
+
+var data_location = "../json_/cluster_time.json";
+if (getParameterByName('data_location'))
+    data_location = getParameterByName('data_location');
+
+
+d3.json(data_location, function(error, dataset) {
     if (error) throw error;
 
     console.log("opened the file");
 
-    data = dataset;
+    data = dataset.data;
+
 
     /***********************************************
     *
@@ -115,8 +131,8 @@ d3.json("../json_/cluster_time_test.json", function(error, dataset) {
     console.log("Min readings: "+min_num);
     console.log("Max readings: "+max_num);
 
-    w = (max_num - min_num) * x_scale;
-    width = w + 2*padding;
+    //w = (max_num - min_num) * x_scale;
+    //width = w + 2*padding;
 
     // Set up timeline scale which is the vertical axis
     var num_scale = d3.scale.linear()
@@ -151,12 +167,41 @@ d3.json("../json_/cluster_time_test.json", function(error, dataset) {
         .call(xAxis);
 
 
+    /********************
+    *
+    *   Add axis labels and title
+    *
+    ********************/
 
-    //This is the accessor function we talked about above
+    svg.append("text")
+        .attr("x", (width / 2))
+        .attr("y", y_origin)
+        .attr("text-anchor", "middle")
+        .style("font-size", "20px")
+        .style("text-decoration", "underline")
+        .text(dataset.title);
+
+    svg.append("text")
+        .attr("x", (width / 2))
+        .attr("y", (y_origin+h+(padding/1.5)))
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .text(dataset.xaxis);
+
+    svg.append("text")
+        .attr("text-anchor", "end")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 20)
+        .attr("x", -(h / 2))
+        .style("font-size", "16px")
+        .text(dataset.yaxis);
+
+/*
     var lineFunction = d3.svg.line()
         .x(function(d) { return x_origin + num_scale(d.readings); })
         .y(function(d) { return y_origin + time_scale(d.time); })
         .interpolate("linear");
+
 
     //The line SVG Path we draw
     var lineGraph = svg.append("path")
@@ -164,6 +209,7 @@ d3.json("../json_/cluster_time_test.json", function(error, dataset) {
         .attr("stroke", "blue")
         .attr("stroke-width", stroke_width)
         .attr("fill", "none");
+        */
 
     svg.selectAll("circle")
         .data(data)
