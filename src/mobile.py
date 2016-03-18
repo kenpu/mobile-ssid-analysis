@@ -1,6 +1,7 @@
 import sys, os
 import sqlite3
 import itertools
+import traceback
 
 DB = os.environ.get("MOBILE_DB")
 
@@ -37,11 +38,16 @@ def stream_raw_readings():
     while True:
         try:
             row = c.fetchone()
-            if row[0] and row[1] and row[2]:
-                yield dict(zip(colnames, row))
             if not row:
                 break
-        except:
+
+            row = list(row)
+            if row[0] and row[1] and row[2]:
+                row[1] = row[1].upper()
+                yield dict(zip(colnames, row))
+        except Exception as e:
+            traceback.print_exc()
+            sys.exit()
             break
     
     db.close()

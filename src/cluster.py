@@ -10,6 +10,7 @@ class Cluster(object):
 
     __bssid_cache__ = None
     __readings_cache__ = None
+    __minsim_cache__ = None
 
     def __init__(self, parent, *children):
         global IDCounter
@@ -103,27 +104,36 @@ class Cluster(object):
             return (first, last, t1 - t0)
 
 
-    def minsim(self, leaves=None):
-        if leaves == None:
-            leaves = self.leaves()
+    def minsim(self, k = 0):
+        if self.__minsim_cache__:
+            return self.__minsim_cache__
 
-        min_s = 1
-        for i in range(len(leaves)):
-            Ci = leaves[i]
-            for j in range(i, len(leaves)):
-                Cj = leaves[j]
-                s = sim(Ci, Cj)
-                min_s = min(s, min_s)
-        return min_s
+        result = 0
+        if self.is_leaf():
+            result = 1
+        else:
+            ms1 = self.left().minsim()
+            ms2 = self.right().minsim()
+            if ms1 == 0 or ms2 == 0:
+                result = 0
+            else:
+                # randomly sample from left and right leaves
+                lleaves = self.left().leaves()
+                rleaves = self.right().leaves()
+                if k > 0 and k < len(lleaves):
+                    lleaves = random.sample(lleaves,k)
+                if k > 0 and k < len(rleaves):
+                    rleaves = random.sample(rleaves, k)
+                ms = min(sim(x, y) for x in lleaves for y in rleaves)
+                result = min(ms, ms1, ms2)
 
-    def stochastic_minsim(self, k=100):
-        leaves = self.leaves()
-        leaves = random.sample(leaves, k) if len(leaves) > k else leaves
-        return self.minsim(leaves)
+        self.__minsim_cache__ = result
+        return result
 
     def nullify_cache(self):
         self.__bssid_cache__ = None
-        self.__readings_cache = None
+        self.__readings_cache__ = None
+        self.__minsim_cache__ = None
         if self.parent:
             self.parent.nullify_cache()
 
@@ -210,7 +220,7 @@ def sim(C1, C2):
 def segment(C, threshold=0.5, k=100):
     if isinstance(C, Hierarchy):
         return segment(C.root, threshold)
-    if C.stochastic_minsim(k) >= threshold:
+    if C.minsim(k) >= threshold:
         return [C]
     else:
         A = segment(C.left(), threshold, k) 
