@@ -4,7 +4,7 @@
 *
 *************************************************/
 
-// draws a line
+// draws a rectangle
 function draw_rect(rect_x, rect_y, rect_w, rect_h, rect_f, name) {
     svg.append("rect")
         .attr("x", rect_x)

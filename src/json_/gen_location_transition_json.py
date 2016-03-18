@@ -94,7 +94,7 @@ transition_json = []
 for i in range(0, len(transitions)-1):
     for j in range(0, len(transitions)-1):
         if transitions[i][j] > 0:
-            transition_json.append({"from": i, "to": j, "count": transitions[i][j]})
+            transition_json.append({"source": i, "target": j, "value": transitions[i][j]})
 
 
 # make json friendly location
