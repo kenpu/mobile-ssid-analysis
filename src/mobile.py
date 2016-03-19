@@ -18,7 +18,7 @@ class Reading(object):
         return "[%s]{%s}" % (self.stamp, ";".join(self.ssids()))
 
     def ssids(self):
-        return sorted(x["ssid"] for x in self.bssids.values())
+        return set(x["ssid"] for x in self.bssids.values())
 
 
 
