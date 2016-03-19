@@ -69,7 +69,7 @@ var x_origin = padding;
 var y_origin = padding;
 
 var x_scale = 2;
-var dot_radius = Math.round(x_scale/2);
+var dot_radius = Math.round(x_scale/2)*2;
 var stroke_width = 1;
 
 
@@ -103,7 +103,7 @@ d3.json(data_location, function(error, dataset) {
     * SET UP TIME STUFF
     *
     ***********************************************/
-    var min_time = data[0].time;
+    var min_time = 0;
     var max_time = Math.max.apply(Math,data.map(function(o){return o.time;}));
 
     console.log("Min time: "+min_time);
