@@ -70,15 +70,21 @@ locations = {}     # generate a dictionary of locations
 location_id = 0
 for l in locs:
     location_name = ",".join("%s[%.2f]" % (x,y) for x,y in l.ssid_strength()[:3])
-    locations[location_id] = {"id": location_id, "name": location_name, "count": len(l.clusters)}
+    total_time = 0
 
     for c in l.clusters:
         start = cluster.Cluster.timespan(c)[0]
         end = cluster.Cluster.timespan(c)[1]
+        total_time = total_time + cluster.Cluster.timespan(c)[2]
         timeline.append({
             "start": start[0:10]+"T"+start[11:16],
             "end": end[0:10]+"T"+end[11:16],
             "location": location_id})
+
+    locations[location_id] = {"id": location_id,
+                              "name": location_name,
+                              "count": len(l.clusters),
+                              "total_time": total_time }
 
     location_id += 1
 
