@@ -93,6 +93,7 @@ class Cluster(object):
         ssids = sorted(result.keys(), key=lambda x: result[x], reverse=1)
         return [(x, result[x]) for x in ssids]
 
+
     def timespan(C):
         readings = C.readings()
         if len(readings) == 0:
@@ -217,7 +218,7 @@ def sim(C1, C2):
     A, B = C1.bssids(), C2.bssids()
     return float(len(A & B)) / len(A | B)
 
-def segment(C, threshold=0.5, k=100):
+def segment(C, threshold=0.5, k=0):
     if isinstance(C, Hierarchy):
         return segment(C.root, threshold)
     if C.minsim(k) >= threshold:
@@ -242,7 +243,7 @@ def locations(tops, threshold=0.1):
             if not accepted:
                 locs.append(Location(C))
 
-    return sorted(locs, key=lambda L: len(L.clusters), reverse=1)
+    return locs
 
 def normalize_strength(dB):
     if dB <= -100: dB = -100
