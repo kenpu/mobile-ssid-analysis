@@ -18,9 +18,12 @@ json :
 	export MOBILE_DB=$(DB2); \
 	python -m gen_hierarchy_json;
 
-ken:
+timeline:
 	@export PYTHONPATH=$(PWD)/src; \
 	python src/algo.py $(DB)
 
 http:
 	python2 -m SimpleHTTPServer
+
+clean:
+	rm *.json *.png

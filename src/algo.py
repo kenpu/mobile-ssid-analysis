@@ -287,7 +287,7 @@ def save_timeline(filename, message, movements, tab, lookup, w_min):
 
     all_L = set()
     timeline = []
-    for seg in movements:
+    for i,seg in enumerate(movements):
         row, w = resolve_location(seg, tab)
         loc = lookup.get(row[0], row[0])
 
@@ -297,6 +297,7 @@ def save_timeline(filename, message, movements, tab, lookup, w_min):
         t0, t1, dt = seg.timespan()
 
         timeline.append(dict(
+            index=i,
             location=locstr(loc),
             strength=w,
             t0=t0,
@@ -305,10 +306,14 @@ def save_timeline(filename, message, movements, tab, lookup, w_min):
 
         all_L.add(locstr(loc))
 
-    result = dict(locations=list(all_L), timeline=timeline, message=message)
+    result = dict(
+            nLoc=len(all_L),
+            locations=list(all_L),
+            timeline=timeline,
+            message=message)
 
     with open(filename, "w") as f:
-        json.dump(f, result)
+        json.dump(result, f)
 
     print("DONE:", message)
         
@@ -322,68 +327,55 @@ if __name__ == '__main__':
 
     locs = sorted(locs, key=strength, reverse=1)
 
-    # Group-by
+    # Group-by to L0
     tab0 = tabulate(locs)
 
-    def print_row(row):
-        print("%80s %5d %5.1f %5d %5d" % (
-            row[0], len(row[1]), row[2], row[3], row[4]))
-
-
-    # Localize movement to locations in L0
-    def print_loc_movement(seg, locname, w):
-        t0, t1, dt = seg.timespan()
-        print("[%4.2f] %50s, %5s (%s)" % (
-            w, str(locname), t0, humanize(dt)))
-
-    all_L0 = set()
-    for seg in movements:
-        row, w = resolve_location(seg, tab0)
-        print_loc_movement(seg, row[0], w)
-        all_L0.add(row[0])
-
-    print("Visited %d L0-locations" % len(all_L0))
-    print("=" * 50)
-
     # Localization to L1
-
-    tab1, lookup = reduce_tab(tab0, all_pairs)
-    all_L1 = set()
-    for seg in movements:
-        row, w = resolve_location(seg, tab0)
-        locname = lookup.get(row[0], row[0])
-        print_loc_movement(seg, locname,  w)
-        all_L1.add(locname)
-
-    print("Visited %d L1-locations" % len(all_L1))
-    print("=" * 50)
-
-    # Filter the segments with low weights
-
-    some_L1 = set()
-    for seg in movements:
-        row, w = resolve_location(seg, tab0)
-        if w < 2:
-            continue
-        locname = lookup.get(row[0], row[0])
-        print_loc_movement(seg, locname,  w)
-        some_L1.add(locname)
-
-    print("Visited %d heavy-L1-locations" % len(some_L1))
-    print("=" * 50)
+    tab1, lookup1 = reduce_tab(tab0, all_pairs)
 
     # Localization to L2
+    tab2, lookup2 = reduce_tab(tab0, all_ones)
 
-    some_L2 = set()    
-    tab2, lookup = reduce_tab(tab0, all_ones)
-    for seg in movements:
-        row, w = resolve_location(seg, tab0)
+    # Write the timelines out
+    save_timeline("L0.json", 
+            "L0 unfiltered",
+            movements,
+            tab0,
+            dict(),
+            0)
 
-        if w < 2: continue
+    save_timeline("L0_filtered.json",
+            "L0 filtered",
+            movements,
+            tab0,
+            dict(),
+            5)
+    
+    save_timeline("L1.json",
+            "L1 unfiltered",
+            movements,
+            tab1,
+            lookup1,
+            0)
 
-        locname = lookup.get(row[0], row[0])
-        print_loc_movement(seg, locname,  w)
-        some_L2.add(locname)
+    save_timeline("L1_filtered.json",
+            "L1 filtered",
+            movements,
+            tab1,
+            lookup1,
+            5)
 
-    print("Visited %d heavy-L2-locations" % len(some_L2))
-    print("=" * 50)
+    save_timeline("L2.json",
+            "L2 unfiltered",
+            movements,
+            tab2,
+            lookup2,
+            0)
+
+    save_timeline("L2_filtered.json",
+            "L2 filtered",
+            movements,
+            tab2,
+            lookup2,
+            5)
+
