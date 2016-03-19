@@ -4,6 +4,8 @@ import itertools
 import time
 import sys
 from collections import defaultdict
+import random
+import json
 
 def pre_analyze(db):
     result = dict()
@@ -190,7 +192,7 @@ def tabulate(locs, k=3):
         sig = signals[key]
         seg = nsegments[key]
         rd  = nreadings[key]
-        result.append((key, len(locs), sig, seg, rd))
+        result.append((key, locs, sig, seg, rd))
 
     return result
 
@@ -201,8 +203,118 @@ def tuple_string(x):
         s += "%30s" % v
     return s
 
-if __name__ == '__main__':
+def merge(tab, keys, lookup):
+    K = set(keys)
+    A = filter(lambda row: K.issubset(set(row[0])), tab)
+    r = [keys, [], 0, 0, 0]
+    for row in A:
+        lookup[row[0]] = tuple(sorted(keys))
+        for i,v in enumerate(row):
+            if i > 0:
+                r[i] += v
 
+    B = list(filter(lambda row: not K.issubset(set(row[0])), tab))
+    B.insert(0, tuple(r))
+    return B
+
+def Kolmogorov(tab, keys):
+    K = set(keys)
+    return len(list(r for r in tab if K.issubset(set(r[0]))))
+
+def all_pairs(tab):
+    for row in tab:
+        S = list(row[0])
+        for i in range(len(S)):
+            x = S[i]
+            for j in range(i+1, len(S)):
+                y = S[j]
+                yield (x,y)
+
+def all_ones(tab):
+    for row in tab:
+        for k in row[0]:
+            yield (k,)
+
+def opt_key(tab, all_keys):
+    key0 = None
+    w0 = 0
+    for i, key in enumerate(all_keys):
+        w = Kolmogorov(tab, key)
+        if i == 0 or w > w0:
+            key0, w0 = key, w
+    return (key0, w0)
+
+#
+# genfun is either all_ones or all_pairs
+#
+def reduce_tab(tab, genfun):
+    all_keys = genfun(tab)
+
+    key, w0 = opt_key(tab, all_keys)
+
+    lookup = dict()
+
+    while w0 > 1:
+        print("......... merge %s .........." % str(key))
+        tab = merge(tab, key, lookup)
+        all_keys = genfun(tab)
+        key, w0 = opt_key(tab, all_keys)
+
+    return tab, lookup
+
+#
+# Uses a maximal likelihood estimation
+# to determine the location of a segment
+# based on the tabular locations.
+#
+def resolve_location(seg, tab, topK=3):
+    def rank_score(row, lookup):
+        return sum(lookup.get(x, 0) for x in row[0])
+
+    lookup = dict(seg.ssid_strength())
+    row0 = None
+    rank0 = None
+    for row in tab:
+        rank = rank_score(row, lookup)
+        if row0 == None or rank0 < rank:
+            row0, rank0 = row, rank
+
+    return row0, rank0
+
+def save_timeline(filename, message, movements, tab, lookup, w_min):
+    def locstr(loc):
+        return "/".join(sorted(loc))
+
+    all_L = set()
+    timeline = []
+    for seg in movements:
+        row, w = resolve_location(seg, tab)
+        loc = lookup.get(row[0], row[0])
+
+        if w < w_min:
+            continue
+
+        t0, t1, dt = seg.timespan()
+
+        timeline.append(dict(
+            location=locstr(loc),
+            strength=w,
+            t0=t0,
+            t1=t1,
+            dt=dt))
+
+        all_L.add(locstr(loc))
+
+    result = dict(locations=list(all_L), timeline=timeline, message=message)
+
+    with open(filename, "w") as f:
+        json.dump(f, result)
+
+    print("DONE:", message)
+        
+
+if __name__ == '__main__':
+    random.seed(0)
     (H, movements, locs) = pre_analyze(sys.argv[1])
 
     def strength(loc):
@@ -211,39 +323,67 @@ if __name__ == '__main__':
     locs = sorted(locs, key=strength, reverse=1)
 
     # Group-by
-    tab = tabulate(locs)
+    tab0 = tabulate(locs)
+
     def print_row(row):
-        print("%80s %5d %5.1f %5d %5d" % row)
+        print("%80s %5d %5.1f %5d %5d" % (
+            row[0], len(row[1]), row[2], row[3], row[4]))
 
-    # Hack
-    def merge(tab, keys):
-        K = set(keys)
-        A = filter(lambda row: keys.issubset(set(row[0])), tab)
-        r = [keys, 0, 0, 0, 0]
-        for row in A:
-            for i,v in enumerate(row):
-                if i > 0:
-                    r[i] += v
 
-        B = list(filter(lambda row: not keys.issubset(set(row[0])), tab))
-        B.insert(0, tuple(r))
-        return B
+    # Localize movement to locations in L0
+    def print_loc_movement(seg, locname, w):
+        t0, t1, dt = seg.timespan()
+        print("[%4.2f] %50s, %5s (%s)" % (
+            w, str(locname), t0, humanize(dt)))
 
-    if False:
-        tab = merge(tab, set(["CAMPUS-AIR"]))
-        tab = merge(tab, set(["DDSB-GUEST"]))
-        tab = sorted(tab, key=lambda x: x[2], reverse=1)
+    all_L0 = set()
+    for seg in movements:
+        row, w = resolve_location(seg, tab0)
+        print_loc_movement(seg, row[0], w)
+        all_L0.add(row[0])
 
-        for x in tab:
-            print_row(x)
+    print("Visited %d L0-locations" % len(all_L0))
+    print("=" * 50)
 
-    if True:
-        # Compute the frequency of pairs
-        pairs = defaultdict(float)
-        for row in tab:
-            for i,x in enumerate(row[0]):
-                for j in range(i+1, len(row[0])):
-                    y = row[0][j]
-                    pairs[(x,y)] += row[2]
-        for k in sorted(pairs.keys(), key=lambda x:pairs[x], reverse=1):
-            print("%80s %.2f" % (k, pairs[k]))
+    # Localization to L1
+
+    tab1, lookup = reduce_tab(tab0, all_pairs)
+    all_L1 = set()
+    for seg in movements:
+        row, w = resolve_location(seg, tab0)
+        locname = lookup.get(row[0], row[0])
+        print_loc_movement(seg, locname,  w)
+        all_L1.add(locname)
+
+    print("Visited %d L1-locations" % len(all_L1))
+    print("=" * 50)
+
+    # Filter the segments with low weights
+
+    some_L1 = set()
+    for seg in movements:
+        row, w = resolve_location(seg, tab0)
+        if w < 2:
+            continue
+        locname = lookup.get(row[0], row[0])
+        print_loc_movement(seg, locname,  w)
+        some_L1.add(locname)
+
+    print("Visited %d heavy-L1-locations" % len(some_L1))
+    print("=" * 50)
+
+    # Localization to L2
+
+    some_L2 = set()    
+    tab2, lookup = reduce_tab(tab0, all_ones)
+    for seg in movements:
+        row, w = resolve_location(seg, tab0)
+
+        if w < 2: continue
+
+        locname = lookup.get(row[0], row[0])
+        print_loc_movement(seg, locname,  w)
+        some_L2.add(locname)
+
+    print("Visited %d heavy-L2-locations" % len(some_L2))
+    print("=" * 50)
