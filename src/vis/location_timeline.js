@@ -67,7 +67,11 @@ var svg = d3.select("body").append("svg")
 
 console.log("Look for data...");
 
-d3.json("../json_/segment.json", function(error, data) {
+var data_location = "../json_/segment.json";
+if (getParameterByName('data_location'))
+    data_location = getParameterByName('data_location');
+
+d3.json(data_location, function(error, data) {
     if (error) throw error;
 
     locations = data;

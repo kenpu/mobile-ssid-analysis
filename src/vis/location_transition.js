@@ -30,6 +30,32 @@ function humanize(sec) {
     return hr.toFixed(2)+" h";
 }
 
+// Great function to get url get variables
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");// This is just to avoid case sensitiveness for query parameter name
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+function marked(s) {
+    var m = ["CAMPUS", "BISHOPTUTU", "DDSB", "Starbucks"];
+
+    var return_value = false;
+    m.forEach(function(l) {
+        console.log(s.indexOf(l) + " " + s + " " + l);
+        if (s.indexOf(l) > -1) {
+            console.log("it is true!!");
+            return_value = true;
+        }
+    });
+
+    return return_value;
+
+}
 
 /*************************************************
 *
@@ -38,8 +64,8 @@ function humanize(sec) {
 *************************************************/
 
 // SVG properties
-var width = 1600;
-var height = 960;
+var width = 2000;
+var height = 2000;
 
 var min_radius = 10;
 var max_radius = 30;
@@ -66,16 +92,33 @@ var svg = d3.select("body").append("svg")
 * THIS IS THE MAIN ATTRACTION
 *
 *************************************************/
+console.log("got here");
+var data_location = "../json_/location_transition.json";
+if (getParameterByName('data_location'))
+    data_location = getParameterByName('data_location');
 
-d3.json("../json_/location_transition.json", function(error, data) {
+
+d3.json(data_location, function(error, data) {
     if (error) throw error;
+
+
 
     links = data.transitions;
     var legend = "";
-    data.locations.forEach( function(loc) {
-        nodes[loc.id] = {name: loc.name, count: loc.count, total_time: loc.total_time}
-        legend = legend + loc.id + " - " + loc.name + "<br />";
-    });
+
+    data.locations.sort( function(a,b) {
+            return a.id > b.id;
+        })
+        .forEach( function(loc) {
+            nodes[loc.id] = {name: loc.name, count: loc.count, total_time: loc.total_time}
+            legend = legend + loc.id + " - " + loc.name + "<br />";
+
+
+        });
+
+    d3.select("#legend")
+        .select("#key")
+        .html(legend);
 
 
     // Set up radius scale to size nodes according to count
@@ -83,12 +126,6 @@ d3.json("../json_/location_transition.json", function(error, data) {
         .domain([get_nodes_min_total_time(nodes), get_nodes_max_total_time(nodes)])
         .range([min_radius, max_radius])
         .nice();
-
-    d3.select("#legend")
-        .style("left", "20px")
-        .style("top", "20px")
-        .select("#key")
-        .html(legend);
 
 
     var force = d3.layout.force()
@@ -122,13 +159,22 @@ d3.json("../json_/location_transition.json", function(error, data) {
         .enter().append("svg:path")
     //    .attr("class", function(d) { return "link " + d.type; })
         .attr("class", "link")
-        .attr("marker-end", "url(#end)");
+        .attr("marker-end", "url(#end)")
+        .attr("stroke-width", 1)
+        .attr("stroke", "#000");
 
     // define the nodes
     var node = svg.selectAll(".node")
         .data(force.nodes())
         .enter().append("g")
         .attr("class", "node")
+        .attr("fill", "#ccc")
+        .attr("stroke", "#000")
+        .attr("stroke-width", function(d) {
+            console.log(marked(d.name));
+            if (marked(d.name)) return "1px";
+            else return "0";
+        })
         .call(force.drag);
 
     // add the nodes
@@ -138,7 +184,6 @@ d3.json("../json_/location_transition.json", function(error, data) {
             var y_pos = d.y - 20;
 
             var msg = d.name+"<br/>"
-                + " visits: " + d.count + "<br />"
                 + " time spent: " + humanize(d.total_time);
 
             d3.select("#tooltip")
@@ -158,6 +203,9 @@ d3.json("../json_/location_transition.json", function(error, data) {
     node.append("text")
       .attr("dx", -6)
       .attr("dy", ".35em")
+      .attr("font-family", "san-serif")
+      .attr("font-size", "12px")
+      .attr("fill", "#000")
       .text(function(d) { return d.index });
 
 
