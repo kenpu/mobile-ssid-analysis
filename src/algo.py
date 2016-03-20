@@ -281,7 +281,9 @@ def resolve_location(seg, tab, topK=3):
 
     return row0, rank0
 
-def save_transitions(filename, message, movements, tab, lookup, w_min):
+
+def build_timeline(movements, tab, lookup, w_min):
+
     def locstr(loc):
         return "/".join(sorted(loc))
 
@@ -307,8 +309,39 @@ def save_transitions(filename, message, movements, tab, lookup, w_min):
 
         all_L.add(locstr(loc))
 
-    # Build transitions
-    # time to count transitions!
+    return all_L, timeline
+
+
+def save_timeline(filename, message, movements, tab, lookup, w_min):
+
+    all_L, timeline = build_timeline(movements, tab, lookup, w_min)
+
+    # make the data a dict for now, but will switch to list later
+    data = {}
+    for l in all_L:
+        data[l] = { "location": l, "segments": []}
+
+    # store each segment of time in its corresponding location
+    for i in range(0, len(timeline)-1):
+        data[timeline[i]["location"]]["segments"].append({"start": timeline[i]["t0"][0:10]+"T"+timeline[i]["t0"][11:16],
+                                                          "end": timeline[i]["t1"][0:10]+"T"+timeline[i]["t1"][11:16]})
+
+    # make json friendly location/segments
+    location_json = []
+    for key, value in data.items():
+        location_json.append(value)
+
+    #print(json.dumps(location_json, sort_keys=True, indent=4, separators=(',', ': ')))
+
+    with open(filename, "w") as f:
+        json.dump(location_json, f)
+
+    print("DONE:", message)
+
+
+def save_transitions(filename, message, movements, tab, lookup, w_min):
+
+    all_L, timeline = build_timeline(movements, tab, lookup, w_min)
 
     # generate a dictionary of locations that have a unique ID
     # and a storage for summing up time spent there
@@ -320,11 +353,14 @@ def save_transitions(filename, message, movements, tab, lookup, w_min):
                          "total_time": 0}
         location_id += 1
 
+    # Make a 2D table of all the possible locations, and store how many times that transition
+    # has been taken (might as well since we can)
     transitions = [[0 for x in range(len(locations))] for x in range(len(locations))]   # [from][to] value is the count
     for i in range(0, len(timeline)-2):
         transitions[locations[timeline[i]["location"]]["id"]][locations[timeline[i+1]["location"]]["id"]] += 1
         locations[timeline[i]["location"]]["total_time"] += timeline[i]["dt"] # sums up the total time spent
 
+    # Since we skip the last one in the previous for loop we need to grab the location total time fo the last one
     locations[timeline[len(timeline)-1]["location"]]["total_time"] += timeline[len(timeline)-1]["dt"]
 
     # make json friendly location
@@ -367,6 +403,13 @@ if __name__ == '__main__':
     tab2, lookup2 = reduce_tab(tab0, all_ones)
 
     # Write the timelines out
+    save_timeline("L0_timeline.json",
+            "L0 timeline",
+            movements,
+            tab0,
+            dict(),
+            0)
+
     save_transitions("L0.json",
             "L0 unfiltered",
             movements,
@@ -374,19 +417,40 @@ if __name__ == '__main__':
             dict(),
             0)
 
+    save_timeline("L0_filtered_timeline.json",
+            "L0 filtered timeline",
+            movements,
+            tab0,
+            dict(),
+            5)
+
     save_transitions("L0_filtered.json",
             "L0 filtered",
             movements,
             tab0,
             dict(),
             5)
-    
+
+    save_timeline("L1_timeline.json",
+            "L1 timeline",
+            movements,
+            tab1,
+            lookup1,
+            0)
+
     save_transitions("L1.json",
             "L1 unfiltered",
             movements,
             tab1,
             lookup1,
             0)
+
+    save_timeline("L1_filtered_timeline.json",
+            "L0 timeline",
+            movements,
+            tab1,
+            lookup1,
+            5)
 
     save_transitions("L1_filtered.json",
             "L1 filtered",
@@ -395,12 +459,26 @@ if __name__ == '__main__':
             lookup1,
             5)
 
+    save_timeline("L2_timeline.json",
+            "L2 timeline",
+            movements,
+            tab2,
+            lookup2,
+            0)
+
     save_transitions("L2.json",
             "L2 unfiltered",
             movements,
             tab2,
             lookup2,
             0)
+
+    save_timeline("L2_filtered_timeline.json",
+            "L2 filtered timeline",
+            movements,
+            tab2,
+            lookup2,
+            5)
 
     save_transitions("L2_filtered.json",
             "L2 filtered",
