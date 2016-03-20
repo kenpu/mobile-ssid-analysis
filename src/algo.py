@@ -281,10 +281,11 @@ def resolve_location(seg, tab, topK=3):
 
     return row0, rank0
 
-def save_timeline(filename, message, movements, tab, lookup, w_min):
+def save_transitions(filename, message, movements, tab, lookup, w_min):
     def locstr(loc):
         return "/".join(sorted(loc))
 
+    #  Builds timeline
     all_L = set()
     timeline = []
     for i,seg in enumerate(movements):
@@ -306,14 +307,43 @@ def save_timeline(filename, message, movements, tab, lookup, w_min):
 
         all_L.add(locstr(loc))
 
-    result = dict(
-            nLoc=len(all_L),
-            locations=list(all_L),
-            timeline=timeline,
-            message=message)
+    # Build transitions
+    # time to count transitions!
+
+    # generate a dictionary of locations that have a unique ID
+    # and a storage for summing up time spent there
+    locations = {}
+    location_id = 0
+    for l in all_L:
+        locations[l] = {"id": location_id,
+                         "name": l,
+                         "total_time": 0}
+        location_id += 1
+
+    transitions = [[0 for x in range(len(locations))] for x in range(len(locations))]   # [from][to] value is the count
+    for i in range(0, len(timeline)-2):
+        transitions[locations[timeline[i]["location"]]["id"]][locations[timeline[i+1]["location"]]["id"]] += 1
+        locations[timeline[i]["location"]]["total_time"] += timeline[i]["dt"] # sums up the total time spent
+
+    locations[timeline[len(timeline)-1]["location"]]["total_time"] += timeline[len(timeline)-1]["dt"]
+
+    # make json friendly location
+    location_json = []
+    for key, value in locations.items():
+        location_json.append(value)
+
+    transition_json = []
+    #  make json friendly transition data
+    for i in range(0, len(transitions)-1):
+        for j in range(0, len(transitions)-1):
+            if transitions[i][j] > 0:
+                transition_json.append({"source": i, "target": j, "value": transitions[i][j]})
+
+    data = {"locations": location_json,
+            "transitions": transition_json}
 
     with open(filename, "w") as f:
-        json.dump(result, f)
+        json.dump(data, f)
 
     print("DONE:", message)
         
@@ -337,42 +367,42 @@ if __name__ == '__main__':
     tab2, lookup2 = reduce_tab(tab0, all_ones)
 
     # Write the timelines out
-    save_timeline("L0.json", 
+    save_transitions("L0.json",
             "L0 unfiltered",
             movements,
             tab0,
             dict(),
             0)
 
-    save_timeline("L0_filtered.json",
+    save_transitions("L0_filtered.json",
             "L0 filtered",
             movements,
             tab0,
             dict(),
             5)
     
-    save_timeline("L1.json",
+    save_transitions("L1.json",
             "L1 unfiltered",
             movements,
             tab1,
             lookup1,
             0)
 
-    save_timeline("L1_filtered.json",
+    save_transitions("L1_filtered.json",
             "L1 filtered",
             movements,
             tab1,
             lookup1,
             5)
 
-    save_timeline("L2.json",
+    save_transitions("L2.json",
             "L2 unfiltered",
             movements,
             tab2,
             lookup2,
             0)
 
-    save_timeline("L2_filtered.json",
+    save_transitions("L2_filtered.json",
             "L2 filtered",
             movements,
             tab2,
