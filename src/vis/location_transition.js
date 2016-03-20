@@ -41,6 +41,22 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
+function marked(s) {
+    var m = ["CAMPUS", "BISHOPTUTU", "DDSB", "Starbucks"];
+
+    var return_value = false;
+    m.forEach(function(l) {
+        console.log(s.indexOf(l) + " " + s + " " + l);
+        if (s.indexOf(l) > -1) {
+            console.log("it is true!!");
+            return_value = true;
+        }
+    });
+
+    return return_value;
+
+}
+
 /*************************************************
 *
 * MAGIC NUMBER DECLARATIONS AND SETTINGS
@@ -48,8 +64,8 @@ function getParameterByName(name, url) {
 *************************************************/
 
 // SVG properties
-var width = 3010;
-var height = 4050;
+var width = 2000;
+var height = 2000;
 
 var min_radius = 10;
 var max_radius = 30;
@@ -89,23 +105,20 @@ d3.json(data_location, function(error, data) {
 
     links = data.transitions;
     var legend = "";
-    var y_legend = 20;
-    var y_increment = 20;
+
     data.locations.sort( function(a,b) {
             return a.id > b.id;
         })
         .forEach( function(loc) {
             nodes[loc.id] = {name: loc.name, count: loc.count, total_time: loc.total_time}
-            legend = loc.id + " - " + loc.name;
+            legend = legend + loc.id + " - " + loc.name + "<br />";
 
-            svg.append("text")
-                .attr("x", 10)
-                .attr("y", y_legend)
-                .attr("font-size", "16px")
-                .html(legend);
 
-            y_legend += y_increment;
         });
+
+    d3.select("#legend")
+        .select("#key")
+        .html(legend);
 
 
     // Set up radius scale to size nodes according to count
@@ -156,6 +169,12 @@ d3.json(data_location, function(error, data) {
         .enter().append("g")
         .attr("class", "node")
         .attr("fill", "#ccc")
+        .attr("stroke", "#000")
+        .attr("stroke-width", function(d) {
+            console.log(marked(d.name));
+            if (marked(d.name)) return "1px";
+            else return "0";
+        })
         .call(force.drag);
 
     // add the nodes
@@ -165,7 +184,6 @@ d3.json(data_location, function(error, data) {
             var y_pos = d.y - 20;
 
             var msg = d.name+"<br/>"
-                + " visits: " + d.count + "<br />"
                 + " time spent: " + humanize(d.total_time);
 
             d3.select("#tooltip")
@@ -185,6 +203,8 @@ d3.json(data_location, function(error, data) {
     node.append("text")
       .attr("dx", -6)
       .attr("dy", ".35em")
+      .attr("font-family", "san-serif")
+      .attr("font-size", "12px")
       .attr("fill", "#000")
       .text(function(d) { return d.index });
 
