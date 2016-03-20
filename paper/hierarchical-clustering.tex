@@ -1,5 +1,7 @@
 \newcommand{\bssid}{\mathbf{B}}
 \newcommand{\ssid}{\mathrm{BSSID}}
+\renewcommand{\SS}{\mathbf{S}}
+\newcommand{\FF}{\mathbf{F}}
 
 \section{Problem Definition}
 
@@ -108,8 +110,109 @@ The constraint of $H$ is such that:
         are contiguous segments in $T$.
 \end{itemize}
 
+We introduce a homogeneity measure for each vertex to measure whether the vertex
+covers a segment of readings at a single location.
+
+\begin{definition}[Vertex minsim]
+    Given vertex $v$ covering a range of readings $R(v)$, we define the minsim
+    as the mininum similarity:
+    $$\mathrm{minsim}(v) = \min\{\mathrm{sim}(r, r'): r, r'\in R(v)\}$$
+\end{definition}
+
+\begin{proposition}
+    $\mathrm{minsim}$ is monotonic with respect to the hierarchy $H$, with the
+    root of $H$ having the minimal $\mathrm{minsim}$ value.
+\end{proposition}
+
+We can efficiently compute the $\mathrm{minsim}(v)$ in a bottom-up fashion.
+
+\begin{figure}
+    \begin{verbatim}
+    (defn minsim [v]
+        (if (or (zero? (minsim (left v))) 
+                (zero? (minsim (right v))))
+            0
+            (min (minsim (left v))
+                 (minsim (right v))
+                 (minsim (R v)))))
+    \end{verbatim}
+    \caption{Minsim computation}
+\end{figure}
+
+For overall large vertices, we rely on an approximation based on sampling:
+
+$\mathrm{minsim}(R(v))$ can be approximated by:
+\begin{itemize}
+    \item Sample $K_1$ from $R(\mathrm{left}(v))$ and $K_2$ from
+        $R(\mathrm{right}(v)$.
+    \item Compute the minsim of the $K_1\times K_2$ pairs, and use it as an
+        estimation of $\mathrm{minsim}(v)$.
+\end{itemize}
+
+\begin{definition}[Segmentation]
+    Given a threshold $c$, a vertex is a {\em maximally} homogeneous if:
+    \begin{itemize}
+        \item $\mathrm{minsim}(v) \geq c$, and
+        \item $\mathrm{minsim}(\mathrm{parent}(v)) < c$
+    \end{itemize}
+\end{definition}
+
+Let $\SS(H|c)$ be the maximally homogeneous vertices in $H$ with respect to
+threshold $c$.
+
+The next stop is the clean $\SS(H|c)$.  For each vertex
+$v\in\SS(H|c)$, we assert that it must have sufficient temporal and
+reading support.  Let $\SS^*(H|c)$ be the vertices $v$ such
+that $\Delta t(v)\geq \tau$.
+
 \subsection{Location Identification}
 
+We need to construct a set of locations $\mathcal{L}$, and a mapping
+$$h:\SS^*(H|c)\to \mathcal{L}$$
+that identifies the locations of the segments in $\SS^*(H|c)$.
+
+This is done using a fast clustering algorithm.
+
+\begin{figure*}
+    \begin{verbatim}
+    (loop [segments (segmentation H)
+           locs     []]
+        (cond
+            (empty? segments) locs
+            (empty? locs) (recur (rest segments)
+                                 (conj locs (first segments)))
+            :else
+                (let [seg (first segments)
+                      segments (rest segments)]
+                    (if-let [loc (nearest locs seg)]
+                        (recur segments
+                               (assoc (:name loc) (augment loc segment)))
+                        (recur segments
+                               (conj locs (new-location seg)))))))
+    \end{verbatim}
+\end{figure*}
+
+In hierarchical localization, we wish to generate a hierarchical organization of
+the fundamental locations. We already have a hierarchical organization of
+$\SS^*(H|c)$.  So, we want to use it to {\em induce} a hierarchy of
+locations.
+
+\begin{figure*}
+    \begin{verbatim}
+    segments is a queue of S*(H|c)
+    forest
+    while (not-empty? segments)
+         seg <- (pop segments)
+         (add seg :to forest)
+         parent = (parent-of seg)
+         if (not-in-queue? parent)
+            (push parent :into segments)
+
+    (defn add [seg :to forest]
+        (let [subF (for [F forest :when (is-subset? F seg)
+                        (location-of F))]
+            (merge subF :in forest)))
+    \end{verbatim}
+\end{figure*}
 
 
-\subsection{Location Inference}
