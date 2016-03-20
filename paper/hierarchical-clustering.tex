@@ -1,22 +1,33 @@
 \newcommand{\bssid}{\mathbf{B}}
 \newcommand{\ssid}{\mathrm{BSSID}}
+\newcommand{\ssim}{\mathrm{sim}}
 \renewcommand{\SS}{\mathbf{S}}
+\newcommand{\RR}{\mathbf{R}}
 \newcommand{\FF}{\mathbf{F}}
+\newcommand{\LL}{\mathbf{L}}
+\newcommand{\lleft}{\mathrm{left}}
+\newcommand{\rright}{\mathrm{right}}
+\newcommand{\RRR}{\hspace{0.4cm}}
 
-\section{Problem Definition}
+\section{Movement Segmentation}
 
-\label{sec:problem-def}
+\label{sec:movement}
 
-A mobile device can make a scan.  We refer to each scan as a {\em reading}.
-Each reading is defined as $\left<t(r), \bssid(r)\right>$ where $t(r)$ is
+We study the problem of online processing of WiFi scans collected by a mobile
+device.  We refer to each scan as a {\em reading}.
+A reading is defined as $\left<t(r), \bssid(r), \ssid, s(\cdot|r)\right>$ where $t(r)$ is
 the timestamp of the reading, and $\bssid(r)\subseteq\mathrm{BSSID}$ is a set of
-BSSID of the wifi hotspots that the scan detected. For each BSSID $b\in
-\bssid(r)$ detected in the reading, we also have the SSID and the signal
-strength, written respectively as:
-$\ssid(b)$ and $s(b|r)$.  We assume that each BSSID has a unique SSID, while the
-strength of a BSSID is specific to a given reading.
+BSSID of the wifi hotspots that the scan detected. 
+The $\ssid:\bssid(r)\to\mathrm{Names}$ is a mapping of BSSID names to
+user-defined name of the WiFi hotspot.  $s(\cdot|r):\bssid(r)\to R^+$ is a
+mapping of BSSID of the reading $r$ to a signal strength; $s(b|r)$ is the
+intensity of $b$ in the reading $r$.
 
-\subsection{Location identification and inference}
+\subsection{Movement detection}
+
+In this section we describe an online algorithm to organize the timeline of
+readings into multiresolution segments.  The timeline is partitioned such that
+within each segment, 
 
 \begin{definition}
     A {\em timeline} $T$ is a sequence of readings.  
@@ -25,194 +36,292 @@ strength of a BSSID is specific to a given reading.
     A {\em segment} of the timeline $S$ is a contiguous subsequence of $T$.
 \end{definition}
 
-Let $\mathcal{L}$ be a (unspecified) finite set of {\em locations}.
+The $\bssid(T_i)$ induces a similarity measure among the readings.
 
-\begin{definition}[Location identification]
-    A {\em location identification} problem consists of several subproblems:
-
-    \begin{enumerate}
-        \item {\em Identification} of the distinct locations $\mathcal{L}$ from
-            a given timeline $T$.
-        \item {\em Inference} of the location of a given reading.
-    \end{enumerate}
+\begin{definition}[Reading similarity]
+$$\ssim(T_i, T_j) = \mathrm{Jaccard}(\bssid(T_i), \bssid(T_j))
+= \frac{|\bssid(T_i) \cap \bssid(T_j)|}{|\bssid(T_i) \cup \bssid(T_j)|}
+$$
 \end{definition}
 
-\subsection{Real-life challenges}
+This allows us to organize $T$ using hierarchical clustering.
+Unlike the traditional hierarchical clustering of sets of items with a
+similarity measure, clustering a timeline has the added constraint that each
+cluster must only contain adjacent readings.
+Algorithm~\ref{alg:bottom-up} is an
+adaptation of the bottom-up agglomerative to compute hierarchical timeline
+clustering.  In $\mathbf{TimelineClustering}(T)$, 
+$\mathbf{merge}(T_i, T_{i+1})$ creates a new node in the hierarchical timeline,
+and its BSSID set is simply the union of the BSSID sets of its children:
+$$\bssid(\mathbf{merge}(x, y)) = \bssid(x)\cup\bssid(y)$$ 
+
+\begin{algorithm}[t]
+    \centering
+\begin{tabular}{|l|}\hline
+    func {\bf TimelineClustering}($T$) \\\hline
+    $X = T$ \\
+    {\bf while} $|X| > 1$ \{ \\
+        \RRR $i^* = \mathrm{argmax}\{\ssim(T_i,T_{i+1}) : i\in [1, |X|]\}$ \\
+        \RRR $r = \mathbf{merge}(T_i, T_j)$ \\
+        \RRR $X = \mathbf{replace}\ [T_i, T_{i+1}]\ \mathbf{with}\ r$\\
+    \}\\ 
+    {\bf return} Tree with root $X$\\ \hline
+\end{tabular}
+\vspace{0.5cm}
+\caption{Bottom-up timeline clustering}
+\label{alg:bottom-up}
+\end{algorithm}
+
+We remark that {\bf TimelineClustering} is certainly {\em not} an online
+algorithm, as it requires $\mathcal{O}(|T|^2)$ complexity to build the
+hierarchy.  This will be remedied later by the online version to be presented
+later.
+
+Let $H = \mathbf{TimelineClustering}(T)$, where $H$ is a binary tree with the
+leaf nodes as the readings in $T$.
+$H$ presents a multiresolution segmentation.
+
+We use the following notations:
 
 \begin{itemize}
-    \item Power-aware sensing creates highly irregular sampling intervals.
-    \item False positive in the readings - phantom BSSID
-    \item False negatives in the readings - undetected BSSID
-    \item Transient hotspots - while driving
-    \item Non-stationary hotspots
-    \item Location is naturally a hierarchical concept
-    \item Online algorithm
+    \item The leaf-nodes of $H$, written $\mathrm{leaf}(H)$, is just the
+        readings $T$.  The nodes of $H$ is writtn $\mathrm{Nodes}(H)$.
+    \item The descendants of $v\in \mathrm{Nodes}(H)$ is written
+        $\mathrm{descendants}(v)$.
+    \item The readings of $v$ is defined as:
+        $$\RR(v) = \mathrm{descendants}(v)\cap\mathrm{leaf}(H)$$
+    \item Since $H$ is a binary tree, each interior node $v$ has two children,
+        written $\lleft(v)$ and $\rright(v)$.
 \end{itemize}
+level of $v$.
 
+The challenge is the determine the nodes in $H$ whose readings are all at the
+{\em same} physical location.  This is determined by the {\em minimum
+similarity}.
 
-\begin{figure*}
-    \begin{verbatim}
-    (defn online-cluster
-        [H tail C-new]
-        (let [root (root H)
-              prev (sibling tail)
-              parent (parent tail)]
-            (cond
-                (= tail root)
-                    (set-root! H (new-cluster root C-new))
-                (closer? (C-new tail) :than (prev tail))
-                    (do
-                        (detach! H tail)
-                        (promote! H prev)
-                        (online-cluster H prev (new-cluster tail C-new)))
-                :else
-                    (do
-                        (online-cluster H parent C-new)))))
-    \end{verbatim}
-\caption{Algorithm to perform online clustering}
-\end{figure*}
+\begin{definition}[Minimum Similarity]
+    Given a set, $R$, of readings, the minimum similarity of $R$, written
+    $\mathrm{minsim}(R)$ is defined as:
 
-\section{The Algorithm}
-
-\subsection{Segmentation}
-
-Given the timeline $T$. We want to partition $T$ into a collection of
-non-overlapping segments $\{S_i\}$, where each $S_i$ is such that all the
-readings $r\in S_i$ are at the same location.
-
-The challenge is that the locations, at this stage, are still unidentified, and
-furthemore, as stated in Section~\ref{sec:problem-def}, we wish to solve the
-multiresolution localization problem.  Thus, instead of partitioning the
-timeline, our objective is to perform a hierarchical segmentation of the
-timeline, as defined in Definition~\ref{def:h-seg}.
-
-\begin{definition}[(Binary) Hierarchical segmentation]
-    A binary hierarhical segmentation of a timeline $T$ is defined as a binary
-    tree of vertices.  The leaf vertices contain a single reading, while the
-    interior vertices have two adjacent vertices as children.
-    \label{def:h-seg}
+    $$\mathrm{minsim}(R) = \min\{\ssim(r,r'): (r,r')\in R\times R\}$$
 \end{definition}
 
-We define the following:
+The $\mathrm{minsim}$ provides a measure if a set of readings $R$ span over more
+than one physical location.
+We observe that if $R$ contains readings taken from two distinct physical
+locations, then, due to the spatial distance there will be at least one pair of
+readings, $r$ and $r'$, that are quite dissimilar: $\ssim(r, r') \leq \epsilon$ for some
+small constant $\epsilon\ll 1$.  This means that $\mathrm{minsim}(R)\leq \epsilon$.
 
-Given a vertex $v$, the readings of $v$, $R(v)$, is given by:
-\begin{itemize}
-    \item If $v\in \mathrm{Leaves}(H)$, then $R(v) = \{r(v)\}$.
-    \item Otherwise, $R(v) = R(\mathrm{left}(v)) \cup R(\mathrm{right}(v))$.
-\end{itemize}
+For nodes in the hierarchy, $v\in\mathrm{Nodes}(H)$, its minsim is simply the
+minsim of its readings.
 
-The constraint of $H$ is such that:
-
-\begin{itemize}
-    \item $H$ must form a cover of $T$.  Namely, every reading must belong to
-        some $R(v)$.
-    \item For each vertex $v$, $R(\mathrm{left}(v))$ and $R(\mathrm{right}(v))$
-        are contiguous segments in $T$.
-\end{itemize}
-
-We introduce a homogeneity measure for each vertex to measure whether the vertex
-covers a segment of readings at a single location.
-
-\begin{definition}[Vertex minsim]
-    Given vertex $v$ covering a range of readings $R(v)$, we define the minsim
-    as the mininum similarity:
-    $$\mathrm{minsim}(v) = \min\{\mathrm{sim}(r, r'): r, r'\in R(v)\}$$
+\begin{definition}[Minsim for nodes]
+    $$\mathrm{minsim}(v) = \mathrm{minsim}(\RR(v))$$
 \end{definition}
 
-\begin{proposition}
-    $\mathrm{minsim}$ is monotonic with respect to the hierarchy $H$, with the
-    root of $H$ having the minimal $\mathrm{minsim}$ value.
-\end{proposition}
+We will use $\mathrm{minsim}$ and $\epsilon$ to perform the segmentation of $T$
+using the hierarchy $H$.  Algorithm~\ref{alg:segments} performs a top-down
+traversal of $H$ to identify the top-most nodes in $H$ with 
+$\mathrm{minsim}(R) > \epsilon$, which we call {\em homogeneous nodes}.
 
-We can efficiently compute the $\mathrm{minsim}(v)$ in a bottom-up fashion.
+\begin{algorithm}[t]
+    \centering
+    \begin{tabular}{|l|}\hline
+        func Segments$(v, \epsilon)$ \\ \hline
+        if $\mathrm{minsim}(v) > \epsilon$ \{ \\
+        \RRR return [$v$] \\
+        \} else \{ \\
+        \RRR $\mathrm{Segments}(\mathrm{left}(v), \epsilon) \cup
+                      \mathrm{Segments}(\mathrm{left}(v), \epsilon)$ \\
+        \} \\ \hline
+    \end{tabular}
+    \vspace{0.4cm}
+    \caption{Identifying homogeneous nodes}
+    \label{alg:segments}
+\end{algorithm}
 
-\begin{figure}
-    \begin{verbatim}
-    (defn minsim [v]
-        (if (or (zero? (minsim (left v))) 
-                (zero? (minsim (right v))))
-            0
-            (min (minsim (left v))
-                 (minsim (right v))
-                 (minsim (R v)))))
-    \end{verbatim}
-    \caption{Minsim computation}
-\end{figure}
+Each homogeneous node in corresponds to a segment of the timeline in which all
+the readings are at the same physical location according to the BSSIDs.
 
-For overall large vertices, we rely on an approximation based on sampling:
+There are two shortcomings with the approach:
 
-$\mathrm{minsim}(R(v))$ can be approximated by:
+\begin{enumerate}
+    \item The timeline clustering is not an online algorithm.
+    \item The segmentation requires the threshold measure $\epsilon$.
+\end{enumerate}
+
+We will address these issues in the coming sections.
+
+\subsection{Online hierarchical timeline clustering}
+
+Our objective is to update a hierarchical timeline cluster $H$ incrementally when
+more readings are appended to the timeline $T$.
+
+We define a procedure $\mathrm{update}(H, v_\mathrm{insert}, v_\mathrm{new})$
+where $H$ is the timeline cluster to be updated, and we wish to add a new node
+$v_\mathrm{new}$ {\em after} the $v_\mathrm{insert}$.
+
+We analyze the behaviour of $\mathrm{update}(\dots)$ by different cases.
+Let $H' = \mathrm{update}(H, v_\mathrm{insert}, v_\mathrm{new})$
+
 \begin{itemize}
-    \item Sample $K_1$ from $R(\mathrm{left}(v))$ and $K_2$ from
-        $R(\mathrm{right}(v)$.
-    \item Compute the minsim of the $K_1\times K_2$ pairs, and use it as an
-        estimation of $\mathrm{minsim}(v)$.
+    \item If $v_\mathrm{insert} = \mathrm{root}(H)$, then
+        $H' = \mathrm{newnode}(v_\mathrm{insert}, v_\mathrm{new})$
+    \item Otherwise, define $v_\mathrm{parent} = \mathrm{parent}(v)$, and
+        $v_\mathrm{prev} = \mathrm{left}(v_\mathrm{parent})$.
+
+        Next week check if $v_\mathrm{new}$ is closer to $v_\mathrm{insert}$ or
+        not, compared to $v_\mathrm{prev}$.
+        \begin{itemize}
+            \item If $\ssim(v_\mathrm{new}, v_\mathrm{insert}) \geq 
+                      \ssim(v_\mathrm{insert}, v_\mathrm{prev})$, then
+                    we create a new node $v' = \mathrm{newnode}(v_\mathrm{insert},
+                    v_\mathrm{new})$, and promote $v_\mathrm{prev}$ to replace
+                    $v_\mathrm{parent}$.  Then, we recursively invoke:
+                    $$H' = \mathrm{update}(H, v_\mathrm{prev}, v')$$
+            \item If $\ssim(v_\mathrm{new}, v_\mathrm{insert})  <
+                      \ssim(v_\mathrm{insert}, v_\mathrm{prev})$, then
+                    we try to insert $v_\mathrm{new}$ after $v_\mathrm{parent}$.
+                    $$H' = \mathrm{update}(H, v_\mathrm{parent}, v_\mathrm{new})$$
+        \end{itemize}
 \end{itemize}
 
-\begin{definition}[Segmentation]
-    Given a threshold $c$, a vertex is a {\em maximally} homogeneous if:
-    \begin{itemize}
-        \item $\mathrm{minsim}(v) \geq c$, and
-        \item $\mathrm{minsim}(\mathrm{parent}(v)) < c$
-    \end{itemize}
-\end{definition}
+\subsection{Unsupervised segmentation}
 
-Let $\SS(H|c)$ be the maximally homogeneous vertices in $H$ with respect to
-threshold $c$.
+In practice, the WiFi readings will encounter several differen types of {\em
+noises}.
 
-The next stop is the clean $\SS(H|c)$.  For each vertex
-$v\in\SS(H|c)$, we assert that it must have sufficient temporal and
-reading support.  Let $\SS^*(H|c)$ be the vertices $v$ such
-that $\Delta t(v)\geq \tau$.
+\begin{itemize}
+    \item False positives - it is possible that a reading will detect one or
+        more BSSIDs which are not local to the physical location.  False
+        positives may be the result of faulty WiFi scan, or by moving WiFi
+        hotspots created by other mobile devices.
+    \item False negatives - a reading my miss certain BSSIDs which are local to
+        the physical location.  This may be the result of signal blockage or
+        momentary interference.
+    \item Moving BSSIDs - moving mobile devices often create transient WiFi
+        hotspots, making it possible for a common WiFi BSSID appear at multiple
+        physical locations.
+\end{itemize}
 
-\subsection{Location Identification}
+By choosing the right threshold during the segmentation $\epsilon$, we can eject
+errors due to noise.  With the right choice of
+$\epsilon$, we classify readings with sufficient difference (as low similarity
+between their BSSID sets) as distinct locations even if some readings contain
+errorenous BSSIDs.
 
-We need to construct a set of locations $\mathcal{L}$, and a mapping
-$$h:\SS^*(H|c)\to \mathcal{L}$$
-that identifies the locations of the segments in $\SS^*(H|c)$.
+We make the assumption that all the segments in $H$ are either homogeneous or
+not.  At the leaf level, we have $\mathrm{minsim}(v) = 1$, and as we traverse
+upwards toward the root, $\mathrm{minsim}(v)\to 0$.  A sudden drop in minsim
+from level $i$ to $i+1$ suggests that at the higher level (and coarser timeline
+partition), nodes are covering more than one physical location.
 
-This is done using a fast clustering algorithm.
+The selection of $\epsilon$ is $\mathrm{minsim}$ corresponding to the level with
+the largest drop in average $\mathrm{minsim}(v)$ for $v$ in the level.
 
-\begin{figure*}
-    \begin{verbatim}
-    (loop [segments (segmentation H)
-           locs     []]
-        (cond
-            (empty? segments) locs
-            (empty? locs) (recur (rest segments)
-                                 (conj locs (first segments)))
-            :else
-                (let [seg (first segments)
-                      segments (rest segments)]
-                    (if-let [loc (nearest locs seg)]
-                        (recur segments
-                               (assoc (:name loc) (augment loc segment)))
-                        (recur segments
-                               (conj locs (new-location seg)))))))
-    \end{verbatim}
-\end{figure*}
+\section{Location Identification}
 
-In hierarchical localization, we wish to generate a hierarchical organization of
-the fundamental locations. We already have a hierarchical organization of
-$\SS^*(H|c)$.  So, we want to use it to {\em induce} a hierarchy of
-locations.
+In Section~\ref{sec:movement}, we described a unsupervised online algorithm to
+identify a sequence of movements, $\SS$, based on the BSSID readings.  The result of the
+algorithm is a sequence of segments, each of which is guaranteed to be present a
+single physical location.
 
-\begin{figure*}
-    \begin{verbatim}
-    segments is a queue of S*(H|c)
-    forest
-    while (not-empty? segments)
-         seg <- (pop segments)
-         (add seg :to forest)
-         parent = (parent-of seg)
-         if (not-in-queue? parent)
-            (push parent :into segments)
+In this section, we describe an efficient algorithm to identify the set of {\em
+unique} locations based on BSSID signatures of each segment.  Given a segment (a
+sequence of consecutive readings in the timeline) $S$, $\RR(S)$ is the readings
+belonging to $S$, and $\bssid(S) = \bigcup\{\bssid(r): r\in\RR(S)\}$.
 
-    (defn add [seg :to forest]
-        (let [subF (for [F forest :when (is-subset? F seg)
-                        (location-of F))]
-            (merge subF :in forest)))
-    \end{verbatim}
-\end{figure*}
+The unique locations are characterized by repeated occurrences of segments with
+similar BSSID signatures.
+
+While we can use $k$-mean clustering to cluster the segments based on the BSSID
+signatures, our application requies an efficient online method that does not
+require a prescribed value of $k$.
+
+Recall that the segments $\SS$ is being produced in a streaming fashion.  will
+propose an algorithm to incrementally build a database of physical locations
+$\LL$.  Each physical location $L\in\LL$ is characterized by a set of {\em
+weighted} BSSIDs.
+
+The algorithm begins with an empty set.  As a segment $S$ is generated in $\SS$, we
+look for a location $L\in\LL$ that is sufficiently similar $S$ by the measure
+of $\ssim(\bssid(L), \bssid(S))$.  If no such $L$ exists, then we have
+discovered a new location, and we create a new location in $\LL$ based on $\bssid(S)$.
+
+The algorithm of location identification is given in Algorithm~\ref{alg:loc}.
+It has a parameter $c$ which is the minimal similarity for a segment to belong
+to a physical location.
+
+\begin{algorithm}[t]
+\begin{tabular}{|l|} \hline
+    func LocIdentify$(\SS)$ \\ \hline
+    $\LL$ = new index of locations \\
+    foreach $S\in\SS$ \{ \\
+        \RRR find $L\in\LL$ such that $\ssim(\bssid(L), \bssid(S)) > c$ \\
+        \RRR if not found \{ \\
+        \RRR \RRR add($\LL$, newloc($S$)) \\
+        \RRR \} else \{ \\
+            \RRR \RRR update-loc($L$, $S$) \\
+        \RRR \} \\
+    \}\\ \hline
+\end{tabular}
+\vspace{0.4cm}
+\caption{Algorithm for identifying distinct locations from a stream of
+movements.}
+\label{alg:loc}
+\end{algorithm}
+
+\section{Semantic Grouping of Physical Locations}
+
+\begin{algorithm}[t]
+    \begin{tabular}{|l|} \hline
+        func SemanticMerge($\LL$, n) \\ \hline
+        $K^* = \mathrm{argmax}\{
+            \mathrm{reduction}(\LL, K) : K\in\mathrm{keys}(\LL, n)$\\
+        $\delta = \mathrm{reduce}(\LL, K)$ \\
+        while $\delta > 0$ \{ \\
+        \RRR $\LL = \mathrm{merge}(\LL, K)$ \\
+        \RRR $K^* = \mathrm{argmax}\{
+            \mathrm{reduction}(\LL, K) : K\in\mathrm{keys}(\LL, n)$\\
+        \RRR $\delta = \mathrm{reduce}(\LL, K)$ \\
+        \}\\
+        return $\LL$ \\ \hline
+    \end{tabular}
+    \vspace{0.4cm}
+    \caption{An algorithm to aggregate physical locations to groups based on
+    their semantic information.}
+    \label{alg:semantic}
+\end{algorithm}
+
+\begin{algorithm}[t]
+    \centering
+    \begin{tabular}{|l|} \hline
+        func merge($\LL$, $K$) \\ \hline
+        $L_\mathrm{new}$ = newlocation($\emptyset$)\\
+        foreach $L\in\LL$ \{ \\
+            \RRR if $K\subseteq\ssid(L)$ \{ \\
+            \RRR \RRR $L_\mathrm{new} = L_\mathrm{new}\cup L$ \\
+            \RRR \RRR delete $L$ from $\LL$ \\
+            \RRR \}
+        \} \\
+        $\LL = \LL\cup\{L_\mathrm{new}\}$ \\
+        return $\LL$ \\ \hline
+    \end{tabular}
+    \vspace{0.4cm}
+    \caption{Merging locations based on a key SSID set.}
+    \label{alg:merge}
+\end{algorithm}
+
+
+
+
+
+
+
+
+
+
+
 
 
