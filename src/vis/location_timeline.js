@@ -71,6 +71,41 @@ function get_timeline_properties(d) {
     return [start, end, smallest];
 }
 
+//find filtered set of locations
+function get_filtered_data(data) {
+    return_data = [];
+    console.log(data);
+    data.forEach(function(d) {
+        var d_location = marked(d.location);
+        if (d_location.length > 0) {
+            //console.log("data appended: "+d)
+            d.location = d_location;
+            return_data.push(d);
+        }
+    });
+    console.log(return_data);
+    return return_data;
+}
+
+function marked(s) {
+    var m = [{"search":"CAMPUS", "label":"Work"},
+        {"search":"BISHOPTUTU", "label":"Home"},
+        {"search":"DDSB", "label":"School"},
+        {"search":"STARBUCKS", "label":"Coffee Shop"}];
+
+    var return_value = "";
+    m.forEach(function(l) {
+        //console.log(s.indexOf(l["search"]) + " " + s + " " + l);
+        if (s.indexOf(l["search"]) > -1) {
+            //console.log("it is true!!");
+            return_value = l["label"];
+        }
+    });
+
+    return return_value;
+
+}
+
 /*************************************************
 *
 * MAGIC NUMBER DECLARATIONS AND SETTINGS
@@ -92,6 +127,7 @@ var locations;      // location data
 var color_diff = 5;
 var bar_height = 50;
 var min_seg_size = 2;
+var days = 4;
 
 var svg;
 
@@ -111,13 +147,15 @@ if (getParameterByName('data_location'))
 d3.json(data_location, function(error, data) {
     if (error) throw error;
 
-    locations = data;
-
+    locations = get_filtered_data(data);
+    //locations = data;
     console.log("number of locations: "+locations.length);
 
 
     // set up colours to assign to locations
-    var color = d3.scale.linear().domain([1,locations.length*color_diff])
+    //var locations_length = locations.length;
+    var locations_length = 4;
+    var color = d3.scale.linear().domain([1,locations_length*color_diff])
       .interpolate(d3.interpolateHcl)
       .range([d3.rgb("#007AFF"), d3.rgb('#FFF500')]);
 
@@ -126,7 +164,7 @@ d3.json(data_location, function(error, data) {
     // Set up timeline scale
     var timeline_attibutes = get_timeline_properties(locations);
     var timeline_start = timeline_attibutes[0];
-    var timeline_end = new Date(timeline_start.getTime() + 3 * 86400000 );
+    var timeline_end = new Date(timeline_start.getTime() + days * 86400000 );
     var smallest_duration = timeline_attibutes[2];
     //w = (timeline_end-timeline_start) * (min_seg_size/smallest_duration);
 

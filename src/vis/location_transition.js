@@ -64,8 +64,8 @@ function marked(s) {
 *************************************************/
 
 // SVG properties
-var width = 2000;
-var height = 2000;
+var width = 600;
+var height = 600;
 
 var min_radius = 10;
 var max_radius = 30;
