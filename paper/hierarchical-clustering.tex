@@ -104,6 +104,7 @@ similarity}.
     $\mathrm{minsim}(R)$ is defined as:
 
     $$\mathrm{minsim}(R) = \min\{\ssim(r,r'): (r,r')\in R\times R\}$$
+    \label{def:minsim}
 \end{definition}
 
 The $\mathrm{minsim}$ provides a measure if a set of readings $R$ span over more
@@ -246,6 +247,25 @@ partition), nodes are covering more than one physical location.
 The selection of $\epsilon$ is $\mathrm{minsim}$ corresponding to the level with
 the largest drop in average $\mathrm{minsim}(v)$ for $v$ in the level.
 
+\subsection{Approximate segmentation using sampling}
+
+The definition of minsim (Definition~\ref{def:minsim}) can be costly as it
+requires computation in $\mathcal{O}(|R|^2)$.  As we compute the root node in
+the hierarchical timeline, $|R|$ grows rapidly.
+
+Given a node in the hierarchy $H$, We can accurately estimate
+$\mathrm{minsim}(v)$ using sampling as follows.
+
+\begin{itemize}
+    \item $v_L = \mathrm{left}(v)$, and $v_R = \mathrm{right}(v)$.
+    \item Let $R_L = \mathrm{sample}(\RR(v_L), N)$.
+    \item Let $R_R = \mathrm{sample}(\RR(v_R), N)$.
+    \item Let $\mu = \mathrm{min}\{\ssim(r,r'): r\in R_L, r'\in R_R$
+\end{itemize}
+Finally the estimation of $\mathrm{minsim}(v)$ is given by:
+
+$$\mathrm{minsim} \simeq \min\{\mathrm{minsim}(v_L), \mathrm{minsim}(v_R), \mu\}$$
+
 \section{Location Identification}
 
 \label{sec:loc}
@@ -254,6 +274,8 @@ In Section~\ref{sec:movement}, we described a unsupervised online algorithm to
 identify a sequence of movements, $\SS$, based on the BSSID readings.  The result of the
 algorithm is a sequence of segments, each of which is guaranteed to be present a
 single physical location.
+
+\subsection{Constructing location index}
 
 In this section, we describe an efficient algorithm to identify the set of {\em
 unique} locations based on BSSID signatures of each segment.  Given a segment (a
@@ -301,7 +323,89 @@ movements.}
 \label{alg:loc}
 \end{algorithm}
 
+\subsection{Transient versus persistent locations}
+
+Algorithm~\ref{alg:loc} produces an index of {\em all} locations visited by the
+mobile device.  $\LL$ also maintains the association between readings/segments
+and the identified physical locations.
+
+Each location $L\in\LL$ has several attributes:
+\begin{enumerate}
+    \item $\mathrm{freq}(L)$ is the number of times that $L$ appeared in the
+        timeline $T$.  This is the number of segments associated to $L$.
+    \item $\mathrm{duration}(L)$ is the total duration that the mobile device
+        was present at location $L$ in the timeline $T$.  This is the sum of all
+        the durations of segments associated to $L$.
+\end{enumerate}
+
+The two metrics $\mathrm{freq}(L)$ and $\mathrm{duration}(L)$ allow us to
+classify the physical locations into two distinct classes: {\em transcient} and
+{\em persistent} locations.
+
+For some minimal duration $\tau$, we can define the transient locations as:
+$$\LL_\mathrm{Transient} = \{ L\in \LL :
+    \mathrm{freq}(L) = 1\ \mathrm{and}\ \mathrm{duration}(L) < \tau
+\}$$
+
+The persistent locations are $\LL_\mathrm{Persistent} = \LL -
+\LL_\mathrm{Transient}$.
+
 \section{Semantic Grouping of Physical Locations}
+
+\begin{algorithm}[t]
+    \centering
+    \begin{tabular}{|l|} \hline
+        func merge($\LL$, $K$) \\
+        \RRR $\LL$: the locations \\
+        \RRR $K$: a set of keywords used to merge locations \\
+        \RRR {\em returns}: the set of semantic locations after merging\\ \hline
+        $L_\mathrm{new}$ = newlocation($\emptyset$)\\
+        foreach $L\in\LL$ \{ \\
+            \RRR if $\forall k\in K\ \exists k'\in\ssid(L)\ \mathrm{such\ that}\ k\preceq k'$ \{ \\
+            \RRR \RRR $L_\mathrm{new} = L_\mathrm{new}\cup L$ \\
+            \RRR \RRR delete $L$ from $\LL$ \\
+            \RRR \} \\
+        \} \\
+        if $L_\mathrm{new}$ is not empty \{ \\
+        \RRR $\LL = \LL\cup\{L_\mathrm{new}\}$ \\
+        \} \\
+        return $\LL$ \\ \hline
+    \end{tabular}
+    \vspace{0.4cm}
+    \caption{Merging locations based on a key SSID set.}
+    \label{alg:merge}
+\end{algorithm}
+
+\begin{figure*}[t]
+    \centering
+    \subfigure[]{
+        \includegraphics[width=5cm]{../plots/L0.pdf}
+    } 
+    \subfigure[]{
+        \includegraphics[width=5cm]{../plots/L1.pdf}
+    }
+    \subfigure[]{
+        \includegraphics[width=5cm]{../plots/L2.pdf}
+    }
+    \caption{Transition diagrams of timelines of all locations labeled by: (a)
+        physical locations, semantic labels with $i=2$, semantic labels with
+        $i=1$.}
+\end{figure*}
+\begin{figure*}[t]
+    \centering
+    \subfigure[]{
+        \includegraphics[width=4.5cm]{../plots/L0_filtered.pdf}
+    }
+    \subfigure[]{
+        \includegraphics[width=4.5cm]{../plots/L1_filtered.pdf}
+    }
+    \subfigure[]{
+        \includegraphics[width=4.5cm]{../plots/L2_filtered.pdf}
+    }
+    \caption{Transition diagrams of timelines of {\em persistent} locations labeled by: (a)
+        physical locations, semantic labels with $i=2$, semantic labels with
+        $i=1$.}
+\end{figure*}
 
 In Section~\ref{sec:movement} and Section~\ref{sec:loc}, we presented two online
 algorithms $\mathbf{OnlineTimelineCluster}$ and $\mathbf{IdentifyLocations}$.
@@ -332,6 +436,60 @@ locations, and the intermediate nodes are labeled.  An intermediate $x$ in the
 location tree signify that the leaf nodes (physical locations) under $x$ are
 semantically related.
 
+Our assumption of semantic relevance is that
+two WiFi hotpots are considered semantically related if they share some common
+features in their user assigned SSID names.  For example, the {\tt
+Starbucks4230} and {\tt Starbucks WiFi2039} share the common prefix of {\tt
+Starbucks}.  This can be formalized by {\em semantic labels}.
+
+\begin{definition}[Semantic labels of locations]
+    Let $K = \{k_1, k_2, \dots, k_m\}$ be a set of keywords.
+    We say that $K$ is can serve as a semantic label of a location $L$ if every
+    keyword in $K$ is a prefix of a SSID label of WiFi hotspots of $L$.
+
+    Namely,
+    $$ \forall k\in K, \exists x\in\ssid(L), k\preceq x$$
+
+    Two locations $L_1$ and $L_2$ are {\em mergable} by $K$ if $K$ is a semantic
+    label for both $L_1$ and $L_2$.
+\end{definition}
+
+\begin{algorithm}[h]
+    \begin{tabular}{|l|} \hline
+        func SemanticMerge($\LL$, $n$) \\ 
+        \RRR $\LL$: the list of locations \\
+        \RRR $i$: the maximal of keywords to use as key \\ 
+        \RRR {\em returns}: set of semantic locations \\ \hline
+        $K^* = \mathrm{argmax} \{|\LL| - |\mathrm{merge}(\LL, K)| : K\in\ssid(\LL)^i\}$ \\
+        $\delta = \mathrm{max} \{|\LL| - |\mathrm{merge}(\LL, K)| : K\in\ssid(\LL)^i\}$ \\
+        while $\delta > 0$ \{ \\
+        \RRR $\LL = \mathrm{merge}(\LL, K)$ \\
+        \RRR $K^* = \mathrm{argmax} \{|\LL| - |\mathrm{merge}(\LL, K)| : K\in\ssid(\LL)^i\}$ \\
+        \RRR $\delta = \mathrm{max} \{|\LL| - |\mathrm{merge}(\LL, K)| : K\in\ssid(\LL)^i\}$ \\
+        \}\\
+        return $\LL$ \\ \hline
+    \end{tabular}
+    \vspace{0.4cm}
+    \caption{An algorithm to aggregate physical locations to groups based on
+    their semantic information.}
+    \label{alg:semantic}
+\end{algorithm}
+
+
+
+In the example of two locations containing SSID names of {\tt Starbucks4230} and
+{\tt Starbucks WiFi2039} in their respective SSID sets, the keyword {\tt
+Starbucks} can be used as part of a semantic label to represent both locations.
+
+Given a semantic label, $K$, and a set of locations $\LL$, we can merge all the
+locations $L\in \LL$ of which $K$ is a semantic label.  The merge function is
+shown in Algorithm~\ref{alg:merge}.  The function {\tt merge($\LL$, $K$)} 
+creates a new semantic location $L_\mathrm{new}$ that contains all the mergable
+locations.
+
+By building semantic locations using successively coarser keyword sets as
+semantic labels, we can build a tree of semantic locations.
+
 \begin{definition}[Semantic Location Tree]
     A {\em semantic location tree} is a tree with levels $0, 1, \dots n+1$, with leaf nodes at
     level 0 as the physical locations $\LL$.  At level $i>0$, the intermediate
@@ -345,63 +503,26 @@ The labels are used to reflect the commonality of the physical locations.
 The root encompasses all the physical locations, and thus carries no semantic
 labels.
 
-Our assumption of semantic relevance is that
-two WiFi hotpots are considered semantically related if they share some common
-features in their user assigned SSID names.  For example, the {\tt
-Starbucks4230} and {\tt Starbucks WiFi2039} share the common prefix of {\tt
-Starbucks}.  
+At each level,  we iteratively merge locations using keyword sets of size
+$i$.  We choose to select the keyword sets 
+to maximize the reduction in the number of semantic locations after
+merge.
 
+Given a set of location $\LL$ with each location $L$ with a SSID set $\ssid(L)$,
+the optimal semantic label $K*$ of length $i$ is defined as:
 
-\begin{algorithm}[t]
-    \begin{tabular}{|l|} \hline
-        func SemanticMerge($\LL$, n) \\ \hline
-        $K^* = \mathrm{argmax}\{
-            \mathrm{reduction}(\LL, K) : K\in\mathrm{keys}(\LL, n)$\\
-        $\delta = \mathrm{reduce}(\LL, K)$ \\
-        while $\delta > 0$ \{ \\
-        \RRR $\LL = \mathrm{merge}(\LL, K)$ \\
-        \RRR $K^* = \mathrm{argmax}\{
-            \mathrm{reduction}(\LL, K) : K\in\mathrm{keys}(\LL, n)$\\
-        \RRR $\delta = \mathrm{reduce}(\LL, K)$ \\
-        \}\\
-        return $\LL$ \\ \hline
-    \end{tabular}
-    \vspace{0.4cm}
-    \caption{An algorithm to aggregate physical locations to groups based on
-    their semantic information.}
-    \label{alg:semantic}
-\end{algorithm}
+$$ K^* = \mathrm{argmax} \{|\LL| - |\mathrm{merge}(\LL, K)| : K\in\ssid(\LL)^i\}$$
 
-\begin{algorithm}[t]
+The semenatic label $K^*$ is then used to merge the locations $\LL$ to $\LL'$.  We then
+iteratively pick the optimal semantic label of $\LL'$, and repeat the merge
+step.  The iteration terminates if $K^*$ can no reduce the number of locations.
+This is formally described in Algorithm~\ref{alg:semantic}.
+
+\section{Implementation and Experimental Evaluation}
+
+\begin{figure}[t]
     \centering
-    \begin{tabular}{|l|} \hline
-        func merge($\LL$, $K$) \\ \hline
-        $L_\mathrm{new}$ = newlocation($\emptyset$)\\
-        foreach $L\in\LL$ \{ \\
-            \RRR if $\forall k\in K\ \exists k'\in\ssid(L)\ \mathrm{such\ that}\ k\preceq k'$ \{ \\
-            \RRR \RRR $L_\mathrm{new} = L_\mathrm{new}\cup L$ \\
-            \RRR \RRR delete $L$ from $\LL$ \\
-            \RRR \} \\
-        \} \\
-        if $L_\mathrm{new}$ is not empty \{ \\
-        \RRR $\LL = \LL\cup\{L_\mathrm{new}\}$ \\
-        \} \\
-        return $\LL$ \\ \hline
-    \end{tabular}
-    \vspace{0.4cm}
-    \caption{Merging locations based on a key SSID set.}
-    \label{alg:merge}
-\end{algorithm}
-
-
-
-
-
-
-
-
-
-
-
-
-
+    \includegraphics[width=3.5in]{../plots/incremental.pdf}
+    \caption{Performance of the online location identification}
+    \label{fig:incremental}
+\end{figure}
