@@ -2,16 +2,19 @@
 Radio frequency and ultrasonic signals are used in conjunction
 \cite{priyantha2000cricket} to estimate the location of mobile devices, with
 the overhead of installing beacon devices throughout the building and listener
-devices to user mobiles.  This method only works in indoor environments and
-requires pre-deployment equipment installation.  Relying only on WiFi signals
-though does not require any pre-deployment overhead since WiFi access points
-already exist everywhere.  Received signal strength indication (RSSI)
+devices to user mobiles.  
+%This method only works in indoor environments and
+%requires pre-deployment equipment installation.  
+%Relying only on WiFi signals
+%though does not require any pre-deployment overhead %since WiFi access points
+%already exist everywhere.  
+Received signal strength indication (RSSI)
 measurements between the cellular base stations and the user device
-\cite{liu1997hierarchical} are processed by algorithms combining an extended
+S\cite{liu1997hierarchical} are processed by algorithms combining an extended
 Kalman filter, approximate pattern matching and velocity vectors to predict
-future movements of users across cell boundaries.  It is suitable for only
-outdoor environments and does not apply naturally to small-scale user mobility,
-e.g., indoor inter-room movements.
+future movements of users across cell boundaries.  It is suitable for only coarse-scale outdoor environments.
+%and does not apply naturally to small-scale user mobility,
+%e.g., indoor inter-room movements.
 
 Indoor localization algorithms that use RSSI have been extensively investigated
 \cite{kushki2007kernel,liu2005signal,

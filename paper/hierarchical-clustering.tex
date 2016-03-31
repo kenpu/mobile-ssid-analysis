@@ -74,13 +74,14 @@ $$\bssid(\mathbf{merge}(x, y)) = \bssid(x)\cup\bssid(y)$$
 
 We remark that {\bf TimelineClustering} is certainly {\em not} an online
 algorithm, as it requires $\mathcal{O}(|T|^2)$ complexity to build the
-hierarchy.  This will be remedied later by the online version to be presented
+hierarchy.  This will be remedied by the online version to be presented
 later.
 
 Let $H = \mathbf{TimelineClustering}(T)$, where $H$ is a binary tree with the
 leaf nodes as the readings in $T$.
 $H$ presents a multiresolution segmentation.
 
+\begin{comment}
 We use the following notations:
 
 \begin{itemize}
@@ -94,6 +95,11 @@ We use the following notations:
         written $\lleft(v)$ and $\rright(v)$.
 \end{itemize}
 level of $v$.
+\end{comment}
+
+We use the following notations:
+The leaf-nodes of $H$, written $\mathrm{leaf}(H)$, is just the readings $T$.  The nodes of $H$ is writtn $\mathrm{Nodes}(H)$.  The descendants of $v\in \mathrm{Nodes}(H)$ is written $\mathrm{descendants}(v)$.  The readings of $v$ is defined as: $$\RR(v) = \mathrm{descendants}(v)\cap\mathrm{leaf}(H)$$
+Since $H$ is a binary tree, each interior node $v$ has two children, written $\lleft(v)$ and $\rright(v)$.
 
 The challenge is the determine the nodes in $H$ whose readings are all at the
 {\em same} physical location.  This is determined by the {\em minimum
@@ -146,12 +152,8 @@ Each homogeneous node in corresponds to a segment of the timeline in which all
 the readings are at the same physical location according to the BSSIDs.
 
 There are two shortcomings with the approach:
-
-\begin{enumerate}
-    \item The timeline clustering is not an online algorithm.
-    \item The segmentation requires the threshold measure $\epsilon$.
-\end{enumerate}
-
+(1) The timeline clustering is not an online algorithm.
+(2) The segmentation requires the threshold measure $\epsilon$.
 We will address these issues in the coming sections.
 
 \subsection{Online hierarchical timeline clustering}
@@ -256,12 +258,21 @@ the hierarchical timeline, $|R|$ grows rapidly.
 Given a node in the hierarchy $H$, We can accurately estimate
 $\mathrm{minsim}(v)$ using sampling as follows.
 
+\begin{comment}
 \begin{itemize}
     \item $v_L = \mathrm{left}(v)$, and $v_R = \mathrm{right}(v)$.
     \item Let $R_L = \mathrm{sample}(\RR(v_L), N)$.
     \item Let $R_R = \mathrm{sample}(\RR(v_R), N)$.
     \item Let $\mu = \mathrm{min}\{\ssim(r,r'): r\in R_L, r'\in R_R$
 \end{itemize}
+\end{comment}
+
+\begin{align*}
+v_L &= \mathrm{left}(v), v_R = \mathrm{right}(v)\\
+R_L &= \mathrm{sample}(\RR(v_L), N)\\
+R_R &= \mathrm{sample}(\RR(v_R), N)\\
+\mu &= \mathrm{min}\{\ssim(r,r'): r\in R_L, r'\in R_R
+\end{align*}
 Finally the estimation of $\mathrm{minsim}(v)$ is given by:
 
 $$\mathrm{minsim} \simeq \min\{\mathrm{minsim}(v_L), \mathrm{minsim}(v_R), \mu\}$$
@@ -330,14 +341,8 @@ mobile device.  $\LL$ also maintains the association between readings/segments
 and the identified physical locations.
 
 Each location $L\in\LL$ has several attributes:
-\begin{enumerate}
-    \item $\mathrm{freq}(L)$ is the number of times that $L$ appeared in the
-        timeline $T$.  This is the number of segments associated to $L$.
-    \item $\mathrm{duration}(L)$ is the total duration that the mobile device
-        was present at location $L$ in the timeline $T$.  This is the sum of all
-        the durations of segments associated to $L$.
-\end{enumerate}
-
+(1) $\mathrm{freq}(L)$ is the number of times that $L$ appeared in the timeline $T$.  This is the number of segments associated with $L$.
+(2) $\mathrm{duration}(L)$ is the total duration that the mobile device was present at location $L$ in the timeline $T$.  This is the sum of all the durations of segments associated to $L$.
 The two metrics $\mathrm{freq}(L)$ and $\mathrm{duration}(L)$ allow us to
 classify the physical locations into two distinct classes: {\em transcient} and
 {\em persistent} locations.
@@ -412,7 +417,7 @@ algorithms $\mathbf{OnlineTimelineCluster}$ and $\mathbf{IdentifyLocations}$.
 We compose the two algorithms forming a pipeline that automatically identifies
 movements based on incoming WiFi hotspot readings.
 
-The limitation of so far is that the algorithms have only been working with
+The limitation so far is that the algorithms have only been working with
 BSSID signatures.  An example of a BSSID (for a Starbucks outlet) looks like 
 {\tt 00:24:6c:46:c5:f0}.  Its use is limited to a universal identifier of the
 WiFi hotspot, not as a humanly readable label.  For this reason, users can
@@ -513,9 +518,9 @@ the optimal semantic label $K*$ of length $i$ is defined as:
 
 $$ K^* = \mathrm{argmax} \{|\LL| - |\mathrm{merge}(\LL, K)| : K\in\ssid(\LL)^i\}$$
 
-The semenatic label $K^*$ is then used to merge the locations $\LL$ to $\LL'$.  We then
+The semantic label $K^*$ is then used to merge the locations $\LL$ to $\LL'$.  We then
 iteratively pick the optimal semantic label of $\LL'$, and repeat the merge
-step.  The iteration terminates if $K^*$ can no reduce the number of locations.
+step.  The iteration terminates if $K^*$ can no longer reduce the number of locations.
 This is formally described in Algorithm~\ref{alg:semantic}.
 
 \section{Implementation and Experimental Evaluation}

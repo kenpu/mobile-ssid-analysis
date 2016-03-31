@@ -1,30 +1,30 @@
 \section{Introduction}
 
-With the omnipresence of WiFi hotspots throughout the urban and suburban
-environments, it has become possible to perform location identification and
-mobility analysis on any mobile devices.  Given the nature of WiFi networks,
+With the omnipresence of WiFi hotspots throughout the urban and suburban areas, it has become possible to perform location identification and
+mobility analysis on any mobile device.  Given the nature of WiFi networks,
 sensing the surrounding WiFi basic service set identifiers (BSSID) can be done
-accurately with very little power requirement and latency, making it an ideal
+accurately with insignificant power requirement and latency, making it an ideal
 way generate spatio-temporal mobility data streams.  The {\em raw} mobility data
 stream consists of a time series of {\em readings}.  Each reading has a
 timestamp, and a collection of triples $\left<\mathrm{bssid}, \mathrm{ssid},
-\mathrm{strength}\right>$, where $\mathrm{bssid}$ is a univerally unique
+\mathrm{strength}\right>$, where $\mathrm{bssid}$ is a universally unique
 identifier of a WiFi hotspot, $\mathrm{ssid}$ is a user-defined name, and
-finally the $\mathrm{strength}$ is a numerical measure of the intensity of the
-signal of that particular WiFi hotspot.
+finally $\mathrm{strength}$ is a numerical measure of the signal intensity of that particular WiFi hotspot.
 
 % Distinguish our approach from others:
 
 The problem of location inference based on WiFi scans has received a great deal
-of attention (e.g. \cite{xxx}).  Our work distinguishes from the existing
-literature in several important ways.  We do make any assumptions on the signal
-propagation model, nor any prior knowledge on the ambient environment.  In the
+of attention (e.g., \cite{feng2012received,hatami2005comparative,
+kushki2007kernel,liu2005signal,paul2008wi,
+letchner2005large}).  Our work distinguishes from the existing
+literature in several important ways.  We do not make any assumptions on the signal
+propagation model, nor any prior knowledge of the ambient environment.  In the
 {\em location identification phase}, our
 algorithm continuously constructs a set of physical locations based on the
 observation of the BSSID's and their signal strength.  Our emphasis is that
-location identification is performed in an unsupervised, ad-hoc, and incremental
+location identification is performed in an unsupervised, ad-hoc and incremental
 fashion.  To make it suitable for the mobile runtime environment, the {\em
-online} algorithm runs with sublinear time and space-complexity.
+online} algorithm runs with sublinear time and space complexity.
 
 % Outline the approach: mobility history, location, hierarchical organization
 
@@ -52,10 +52,8 @@ incrementally refined.
 \noindent{\em Semantic Clustering}
 
 While the BSSID information provides accurate physical location identification,
-they do not carry sufficient {\em semantic} value to the end user.  For the sake
-of minimizing power consumption, we do not wish to utilize the GPS capability of
-the mobile device.  It turns out that the user-defined SSID names of the WiFi
-hotspot are a useful source of semantic knowledge of the physical locations.
+they do not carry sufficient {\em semantic} value to the end user.  We do not use GPS for the sake
+of minimizing power consumption.  It turns out that user-defined SSID names are a useful source of semantic knowledge of the physical locations.
 Our algorithm analyzes the SSID names to organize the physical locations into a
 semantically meaningful hierarchy.
 
