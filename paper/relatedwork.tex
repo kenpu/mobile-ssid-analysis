@@ -6,3 +6,5 @@ the indoor area is divided into a grid and signal data is recorded from a set of
 
 The works of \cite{seshadri2005bayesian} and \cite{letchner2005large} both model user locations as states of a dynamic system with the noisy observations of RSSI data, and apply an implementation of Bayesian filters called particle filters to probabilistically estimate the system state (i.e., user location).  An initial training phase builds a wireless sensor map of the environment divided into cells by sampling at predefined points; this step is dependent on the assumed WiFi sensor model, either signal propagation or fingerprinting models.  Then location is estimated on a spatial connectivity graph; each motion update step of the Bayesian filter moves the user along an edge of this graph.  These probabilistic methods are powerful but suffers the drawback of potential high computational complexity inherent in the particle filters method whose worst-case complexity grows exponentially in dimensions of the state space.
 Moreover, all these above-mentioned approaches all require an initial training phase, and therefore are not online and ad-hoc.
+
+Ying's edit
