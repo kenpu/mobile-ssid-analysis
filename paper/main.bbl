@@ -1,0 +1,105 @@
+\begin{thebibliography}{10}
+
+\bibitem{bahl2000radar}
+P.~Bahl and V.~N. Padmanabhan.
+\newblock Radar: An in-building rf-based user location and tracking system.
+\newblock In {\em INFOCOM 2000. Nineteenth Annual Joint Conference of the IEEE
+  Computer and Communications Societies. Proceedings. IEEE}, volume~2, pages
+  775--784. Ieee, 2000.
+
+\bibitem{feng2012received}
+C.~Feng, W.~S.~A. Au, S.~Valaee, and Z.~Tan.
+\newblock Received-signal-strength-based indoor positioning using compressive
+  sensing.
+\newblock {\em Mobile Computing, IEEE Transactions on}, 11(12):1983--1993,
+  2012.
+
+\bibitem{ferris2006gaussian}
+B.~Ferris, D.~Haehnel, and D.~Fox.
+\newblock Gaussian processes for signal strength-based location estimation.
+\newblock In {\em In proc. of robotics science and systems}. Citeseer, 2006.
+
+\bibitem{hatami2005comparative}
+A.~Hatami and K.~Pahlavan.
+\newblock A comparative performance evaluation of rss-based positioning
+  algorithms used in wlan networks.
+\newblock In {\em Wireless Communications and Networking Conference, 2005
+  IEEE}, volume~4, pages 2331--2337. IEEE, 2005.
+
+\bibitem{kaemarungsi2004modeling}
+K.~Kaemarungsi and P.~Krishnamurthy.
+\newblock Modeling of indoor positioning systems based on location
+  fingerprinting.
+\newblock In {\em INFOCOM 2004. Twenty-third AnnualJoint Conference of the IEEE
+  Computer and Communications Societies}, volume~2, pages 1012--1022. IEEE,
+  2004.
+
+\bibitem{kushki2007kernel}
+A.~Kushki, K.~N. Plataniotis, and A.~N. Venetsanopoulos.
+\newblock Kernel-based positioning in wireless local area networks.
+\newblock {\em Mobile Computing, IEEE Transactions on}, 6(6):689--705, 2007.
+
+\bibitem{letchner2005large}
+J.~Letchner, D.~Fox, and A.~LaMarca.
+\newblock Large-scale localization from wireless signal strength.
+\newblock In {\em Proceedings of the national conference on artificial
+  intelligence}, volume~20, page~15. Menlo Park, CA; Cambridge, MA; London;
+  AAAI Press; MIT Press; 1999, 2005.
+
+\bibitem{li2006indoor}
+B.~Li, J.~Salter, A.~G. Dempster, and C.~Rizos.
+\newblock Indoor positioning techniques based on wireless lan.
+\newblock In {\em LAN, First IEEE International Conference on Wireless
+  Broadband and Ultra Wideband Communications}. Citeseer, 2006.
+
+\bibitem{liu2005signal}
+K.~R. Liu.
+\newblock Signal processing techniques in network-aided positioning.
+\newblock {\em IEEE Signal Processing Magazine}, 1053(5888/05), 2005.
+
+\bibitem{liu1997hierarchical}
+T.~Liu, P.~Bahl, and I.~Chlamtac.
+\newblock A hierarchical position-prediction algorithm for efficient management
+  of resources in cellular networks.
+\newblock In {\em Global Telecommunications Conference, 1997. GLOBECOM'97.,
+  IEEE}, volume~2, pages 982--986. IEEE, 1997.
+
+\bibitem{ma2008cluster}
+J.~Ma, X.~Li, X.~Tao, and J.~Lu.
+\newblock Cluster filtered knn: A wlan-based indoor positioning scheme.
+\newblock In {\em World of Wireless, Mobile and Multimedia Networks, 2008.
+  WoWMoM 2008. 2008 International Symposium on a}, pages 1--8. IEEE, 2008.
+
+\bibitem{paul2008wi}
+A.~S. Paul and E.~A. Wan.
+\newblock Wi-fi based indoor localization and tracking using sigma-point kalman
+  filtering methods.
+\newblock In {\em Position, Location and Navigation Symposium, 2008 IEEE/ION},
+  pages 646--659. IEEE, 2008.
+
+\bibitem{priyantha2000cricket}
+N.~B. Priyantha, A.~Chakraborty, and H.~Balakrishnan.
+\newblock The cricket location-support system.
+\newblock In {\em Proceedings of the 6th annual international conference on
+  Mobile computing and networking}, pages 32--43. ACM, 2000.
+
+\bibitem{roos2002probabilistic}
+T.~Roos, P.~Myllym{\"a}ki, H.~Tirri, P.~Misikangas, and J.~Siev{\"a}nen.
+\newblock A probabilistic approach to wlan user location estimation.
+\newblock {\em International Journal of Wireless Information Networks},
+  9(3):155--164, 2002.
+
+\bibitem{seshadri2005bayesian}
+V.~Seshadri, G.~V. Zaruba, and M.~Huber.
+\newblock A bayesian sampling approach to in-door localization of wireless
+  devices using received signal strength indication.
+\newblock In {\em Pervasive Computing and Communications, 2005. PerCom 2005.
+  Third IEEE International Conference on}, pages 75--84. IEEE, 2005.
+
+\bibitem{smailagic2002location}
+A.~Smailagic and D.~Kogan.
+\newblock Location sensing and privacy in a context-aware computing
+  environment.
+\newblock {\em Wireless Communications, IEEE}, 9(5):10--17, 2002.
+
+\end{thebibliography}
