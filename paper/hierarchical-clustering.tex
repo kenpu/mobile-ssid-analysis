@@ -86,7 +86,7 @@ We use the following notations:
 
 \begin{itemize}
     \item The leaf-nodes of $H$, written $\mathrm{leaf}(H)$, is just the
-        readings $T$.  The nodes of $H$ is writtn $\mathrm{Nodes}(H)$.
+        readings $T$.  The nodes of $H$ is written $\mathrm{Nodes}(H)$.
     \item The descendants of $v\in \mathrm{Nodes}(H)$ is written
         $\mathrm{descendants}(v)$.
     \item The readings of $v$ is defined as:
@@ -98,7 +98,7 @@ level of $v$.
 \end{comment}
 
 We use the following notations:
-The leaf-nodes of $H$, written $\mathrm{leaf}(H)$, is just the readings $T$.  The nodes of $H$ is writtn $\mathrm{Nodes}(H)$.  The descendants of $v\in \mathrm{Nodes}(H)$ is written $\mathrm{descendants}(v)$.  The readings of $v$ is defined as: $$\RR(v) = \mathrm{descendants}(v)\cap\mathrm{leaf}(H)$$
+The leaf-nodes of $H$, written $\mathrm{leaf}(H)$, is just the readings $T$.  The nodes of $H$ is written $\mathrm{Nodes}(H)$.  The descendants of $v\in \mathrm{Nodes}(H)$ is written $\mathrm{descendants}(v)$.  The readings of $v$ is defined as: $$\RR(v) = \mathrm{descendants}(v)\cap\mathrm{leaf}(H)$$
 Since $H$ is a binary tree, each interior node $v$ has two children, written $\lleft(v)$ and $\rright(v)$.
 
 The challenge is the determine the nodes in $H$ whose readings are all at the
@@ -108,8 +108,7 @@ similarity}.
 \begin{definition}[Minimum Similarity]
     Given a set, $R$, of readings, the minimum similarity of $R$, written
     $\mathrm{minsim}(R)$ is defined as:
-
-    $$\mathrm{minsim}(R) = \min\{\ssim(r,r'): (r,r')\in R\times R\}$$
+    $\mathrm{minsim}(R) = \min\{\ssim(r,r'): (r,r')\in R\times R\}$
     \label{def:minsim}
 \end{definition}
 
@@ -136,12 +135,11 @@ $\mathrm{minsim}(R) > \epsilon$, which we call {\em homogeneous nodes}.
     \centering
     \begin{tabular}{|l|}\hline
         func Segments$(v, \epsilon)$ \\ \hline
-        if $\mathrm{minsim}(v) > \epsilon$ \{ \\
+        if $\mathrm{minsim}(v) > \epsilon$ \\
         \RRR return [$v$] \\
-        \} else \{ \\
+        else \\
         \RRR return $\mathrm{Segments}(\mathrm{left}(v), \epsilon) \cup
-                      \mathrm{Segments}(\mathrm{left}(v), \epsilon)$ \\
-        \} \\ \hline
+                      \mathrm{Segments}(\mathrm{left}(v), \epsilon)$ \\ \hline
     \end{tabular}
     \vspace{0.4cm}
     \caption{Identifying homogeneous nodes}
@@ -218,7 +216,7 @@ between the new $H$ and the old $H$.
 
 \subsection{Unsupervised segmentation}
 
-In practice, the WiFi readings will encounter several differen types of {\em
+In practice, the WiFi readings will encounter several different types of {\em
 noises}.
 
 \begin{itemize}
@@ -238,7 +236,7 @@ By choosing the right threshold during the segmentation $\epsilon$, we can eject
 errors due to noise.  With the right choice of
 $\epsilon$, we classify readings with sufficient difference (as low similarity
 between their BSSID sets) as distinct locations even if some readings contain
-errorenous BSSIDs.
+erroneous BSSIDs.
 
 We make the assumption that all the segments in $H$ are either homogeneous or
 not.  At the leaf level, we have $\mathrm{minsim}(v) = 1$, and as we traverse
@@ -258,19 +256,9 @@ the hierarchical timeline, $|R|$ grows rapidly.
 Given a node in the hierarchy $H$, We can accurately estimate
 $\mathrm{minsim}(v)$ using sampling as follows.
 
-\begin{comment}
-\begin{itemize}
-    \item $v_L = \mathrm{left}(v)$, and $v_R = \mathrm{right}(v)$.
-    \item Let $R_L = \mathrm{sample}(\RR(v_L), N)$.
-    \item Let $R_R = \mathrm{sample}(\RR(v_R), N)$.
-    \item Let $\mu = \mathrm{min}\{\ssim(r,r'): r\in R_L, r'\in R_R$
-\end{itemize}
-\end{comment}
-
 \begin{align*}
 v_L &= \mathrm{left}(v), v_R = \mathrm{right}(v)\\
-R_L &= \mathrm{sample}(\RR(v_L), N)\\
-R_R &= \mathrm{sample}(\RR(v_R), N)\\
+R_L &= \mathrm{sample}(\RR(v_L), N), R_R = \mathrm{sample}(\RR(v_R), N)\\
 \mu &= \mathrm{min}\{\ssim(r,r'): r\in R_L, r'\in R_R
 \end{align*}
 Finally the estimation of $\mathrm{minsim}(v)$ is given by:
@@ -297,7 +285,7 @@ The unique locations are characterized by repeated occurrences of segments with
 similar BSSID signatures.
 
 While we can use $k$-mean clustering to cluster the segments based on the BSSID
-signatures, our application requies an efficient online method that does not
+signatures, our application requires an efficient online method that does not
 require a prescribed value of $k$.
 
 Recall that the segments $\SS$ is being produced in a streaming fashion.  will
@@ -321,11 +309,10 @@ to a physical location.
     $\LL$ = new index of locations \\
     foreach $S\in\SS$ \{ \\
         \RRR find $L\in\LL$ such that $\ssim(\bssid(L), \bssid(S)) > c$ \\
-        \RRR if not found \{ \\
+        \RRR if not found \\
         \RRR \RRR $\LL = \LL\cup \mathrm{newloc}(S)$ \\
-        \RRR \} else \{ \\
+        \RRR else \\
         \RRR \RRR Update readings of $L$ with readings of $S$ \\
-        \RRR \} \\
     \}\\ \hline
 \end{tabular}
 \vspace{0.4cm}
@@ -371,9 +358,8 @@ The persistent locations are $\LL_\mathrm{Persistent} = \LL -
             \RRR \RRR delete $L$ from $\LL$ \\
             \RRR \} \\
         \} \\
-        if $L_\mathrm{new}$ is not empty \{ \\
+        if $L_\mathrm{new}$ is not empty \\
         \RRR $\LL = \LL\cup\{L_\mathrm{new}\}$ \\
-        \} \\
         return $\LL$ \\ \hline
     \end{tabular}
     \vspace{0.4cm}
@@ -383,33 +369,32 @@ The persistent locations are $\LL_\mathrm{Persistent} = \LL -
 
 \begin{figure*}[t]
     \centering
-    \subfigure[]{
-        \includegraphics[width=5cm]{../plots/L0.pdf}
+    \subfigure[Physical locations]{
+        \includegraphics[width=4cm]{../plots/L0.pdf}
     } 
-    \subfigure[]{
-        \includegraphics[width=5cm]{../plots/L1.pdf}
+    \subfigure[Semantic label with $2$ keywords]{
+        \includegraphics[width=4cm]{../plots/L1.pdf}
     }
-    \subfigure[]{
-        \includegraphics[width=5cm]{../plots/L2.pdf}
+    \subfigure[Semantic label with $1$ keyword]{
+        \includegraphics[width=4cm]{../plots/L2.pdf}
     }
-    \caption{Transition diagrams of timelines of all locations labeled by: (a)
-        physical locations, semantic labels with $i=2$, semantic labels with
-        $i=1$.}
+    \caption{Transition diagrams of timelines of all locations.}
+    \label{fig:loc1}
 \end{figure*}
 \begin{figure*}[t]
     \centering
-    \subfigure[]{
-        \includegraphics[width=4.5cm]{../plots/L0_filtered.pdf}
+    \subfigure[Physical locations]{
+        \includegraphics[width=4cm]{../plots/L0_filtered.pdf}
     }
-    \subfigure[]{
-        \includegraphics[width=4.5cm]{../plots/L1_filtered.pdf}
+    \subfigure[Semantic label with $2$ keywords]{
+        \includegraphics[width=4cm]{../plots/L1_filtered.pdf}
     }
-    \subfigure[]{
-        \includegraphics[width=4.5cm]{../plots/L2_filtered.pdf}
+    \subfigure[Semantic label with $1$ keywords]{
+        \includegraphics[width=4cm]{../plots/L2_filtered.pdf}
     }
-    \caption{Transition diagrams of timelines of {\em persistent} locations labeled by: (a)
-        physical locations, semantic labels with $i=2$, semantic labels with
-        $i=1$.}
+    \caption{Transition diagrams of timelines of {\em persistent} 
+    locations.}
+    \label{fig:loc2}
 \end{figure*}
 
 In Section~\ref{sec:movement} and Section~\ref{sec:loc}, we presented two online
@@ -453,7 +438,7 @@ Starbucks}.  This can be formalized by {\em semantic labels}.
     keyword in $K$ is a prefix of a SSID label of WiFi hotspots of $L$.
 
     Namely,
-    $$ \forall k\in K, \exists x\in\ssid(L), k\preceq x$$
+    $ \forall k\in K, \exists x\in\ssid(L), k\preceq x$
 
     Two locations $L_1$ and $L_2$ are {\em mergable} by $K$ if $K$ is a semantic
     label for both $L_1$ and $L_2$.
@@ -515,8 +500,7 @@ merge.
 
 Given a set of location $\LL$ with each location $L$ with a SSID set $\ssid(L)$,
 the optimal semantic label $K*$ of length $i$ is defined as:
-
-$$ K^* = \mathrm{argmax} \{|\LL| - |\mathrm{merge}(\LL, K)| : K\in\ssid(\LL)^i\}$$
+$ K^* = \mathrm{argmax} \{|\LL| - |\mathrm{merge}(\LL, K)| : K\in\ssid(\LL)^i\}$
 
 The semantic label $K^*$ is then used to merge the locations $\LL$ to $\LL'$.  We then
 iteratively pick the optimal semantic label of $\LL'$, and repeat the merge
@@ -527,7 +511,52 @@ This is formally described in Algorithm~\ref{alg:semantic}.
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=3.5in]{../plots/incremental.pdf}
+    \includegraphics[width=3.4in]{../plots/incremental.pdf}
     \caption{Performance of the online location identification}
     \label{fig:incremental}
 \end{figure}
+
+We have implemented the proposed algorithms on the Android platform.  We have
+developed an application for Android 5.0 using the SDK version 21.  The app
+utilizes the mobile WiFi manager API to collect the readings.  The readings are
+cached on the mobile device, and also synchronized with a cloud storage.
+In the cloud environment, we perform (1)
+hierarchical timeline construction, (2) transient/persistent location
+identification and (3) semantic location grouping.  The semantically annotated
+timeline is used to construct the transition diagrams summarizing the user
+mobility patterns.
+
+Figure~\ref{fig:incremental} shows the time required for end-to-end update for {\em
+each} reading.  This includes incremental update of the hierarchical timeline,
+update of location index, and update of the semantic grouping.  The two important
+observations are: (1) the runtime is bounded by $\mathcal{O}(1)$, thus allowing
+us to cope with long lasting streams of readings, and (2) each update is
+limited to a few milliseconds, permitting real-time response to user queries.
+
+Figure~\ref{fig:loc1} and Figure~\ref{fig:loc2} show the semantically labeled
+timelines as transition diagrams.  The vertices are the semantic locations with
+the sizes determined by the respective total durations.
+The transition diagrams of {\em all} the locations at three different semantic
+levels are shown in Figure~\ref{fig:loc1}.  The presence of transient locations
+is clearly visible as long strands of simple paths in the transition diagrams.
+Figure~\ref{fig:loc2} shows the transition diagrams consisting of only
+persistent locations.  The mobility pattern is much clearer in higher level
+semantic labels.
+We manually verified that all the vertices in Figure~\ref{fig:loc2} (c)
+correspond to locations of significance: Home, Office, Coffee shops, Grocery,
+etc.
+
+\section{Conclusion and Future Work}
+
+We have presented a pipeline of online algorithms to process WiFi readings
+collected by a mobile device.  By analyzing the BSSID and SSID signatures of the
+WiFi hotspots, we can infer mobility over time in an online fashion.  Our
+algorithm copes well with the presence of noisy reading and transient WiFi
+hotspots.  Compared to alternatives in the literature, our algorithm is highly
+efficient and responsive, capable of performing online processing with only
+milliseconds delay.  Furthermore, we utilize the user-defined SSID names to
+perform semantic labeling of the physical locations to better represent the
+mobility patterns to the user.
+
+Our future work includes incorporating the hierarchical semantic timeline to
+build mobility aware mobile applications.
