@@ -1,0 +1,76 @@
+\documentclass[conference,compsoc]{IEEEtran}
+\ifCLASSOPTIONcompsoc
+  \usepackage[nocompress]{cite}
+\else
+  \usepackage{cite}
+\fi
+\usepackage{amsmath,amssymb,latexsym}
+\usepackage[]{algorithm2e}
+\usepackage{subfigure}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+
+\begin{document}
+\title{Hierarchical Temporal Mobility Analysis with Semantic Labeling}
+
+% author names and affiliations
+% use a multiple column layout for up to three different
+% affiliations
+\author{
+    \IEEEauthorblockN{Adele Hedrick}
+    \IEEEauthorblockA{
+        Faculty of Science \\
+        UOIT \\
+        Oshawa, ON, Canada \\
+        Email: adele.hedrick@uoit.net
+    }
+\and
+    \IEEEauthorblockN{Ken Q. Pu}
+    \IEEEauthorblockA{
+        Faculty of Science \\
+        UOIT \\
+        Oshawa, ON, Canada \\
+        Email: ken.pu@uoit.ca
+    }
+\and
+    \IEEEauthorblockN{Ying Zhu}
+    \IEEEauthorblockA{
+        Faculty of Business and IT \\
+        UOIT \\
+        Oshawa, ON, Canada \\
+        Email: ying.zhu@uoit.ca
+    }
+}
+
+% make the title area
+\maketitle
+
+\linespread{1.0}
+\selectfont
+
+% As a general rule, do not put math, special symbols or citations
+% in the abstract
+\begin{abstract}
+    \input{abstract}
+\end{abstract}
+
+% For peerreview papers, this IEEEtran command inserts a page break and
+% creates the second title. It will be ignored for other modes.
+\IEEEpeerreviewmaketitle
+
+
+
+\input{intro}
+\input{relatedwork}
+\input{hierarchical-clustering}
+
+% conference papers do not normally have an appendix
+\bibliographystyle{abbrv}
+\bibliography{references}
+
+\end{document}
+
+

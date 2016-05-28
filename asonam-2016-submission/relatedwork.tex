@@ -1,0 +1,63 @@
+\section{Related Work}
+Radio frequency and ultrasonic signals are used in conjunction
+\cite{priyantha2000cricket} to estimate the location of mobile devices, with
+the overhead of installing beacon devices throughout the building and listener
+devices to user mobiles.  
+%This method only works in indoor environments and
+%requires pre-deployment equipment installation.  
+%Relying only on WiFi signals
+%though does not require any pre-deployment overhead %since WiFi access points
+%already exist everywhere.  
+Received signal strength indication (RSSI)
+measurements between the cellular base stations and the user device
+S\cite{liu1997hierarchical} are processed by algorithms combining an extended
+Kalman filter, approximate pattern matching and velocity vectors to predict
+future movements of users across cell boundaries.  It is suitable for only coarse-scale outdoor environments.
+%and does not apply naturally to small-scale user mobility,
+%e.g., indoor inter-room movements.
+
+Indoor localization algorithms that use RSSI have been extensively investigated
+\cite{kushki2007kernel,liu2005signal,
+hatami2005comparative,paul2008wi,feng2012received} because there is no overhead
+cost of additional hardware required before deployment.  In \cite{paul2008wi},
+positioning and tracking of users depend on the locations of known WiFi access
+points which may not be realistic in the general case.  Our work does not
+require such prior knowledge, we use readings from any available access points
+that are detected.  Some work \cite{bahl2000radar,ferris2006gaussian} focus on
+the problems arising from the unpredictable effect of physical factors on the
+received signals and use a propagation model for the relationship between
+signal and location.  An alternative is the fingerprinting model
+\cite{kaemarungsi2004modeling,li2006indoor, ma2008cluster} where offline
+readings are recorded first and the online readings are then compared to them.
+The $k$ nearest neighbor algorithm is used in \cite{li2006indoor,ma2008cluster}
+to estimate the user location.  It is an efficient algorithm but suffers in
+estimation accuracy.  The localization system in \cite{feng2012received} has
+two phases: an offline phase in which a radio map is built by collecting
+readings on a grid of reference points and decomposed into clusters; an online
+phase in which signal readings are first identified to belong to certain
+clusters and then more finely localized using compression sensing theory.  This
+method has high accuracy but still requires an initial offline phase which is
+not realistic in general, especially in outdoor environments.
+
+In works such as \cite{roos2002probabilistic,smailagic2002location}, the indoor
+area is divided into a grid and signal data is recorded from a set of fixed
+known points which is used as training data, generating a probability
+distribution of signal strengths given location values.  With new signal
+observations, the posterior distribution is computed and the location with the
+highest probability is chosen.  
+
+The works of \cite{seshadri2005bayesian} and \cite{letchner2005large} both
+model user locations as states of a dynamic system with the noisy observations
+of RSSI data, and apply an implementation of Bayesian filters called particle
+filters to probabilistically estimate the system state (i.e., user location).
+An initial training phase builds a wireless sensor map of the environment
+divided into cells by sampling at predefined points; this step is dependent on
+the assumed WiFi sensor model, either signal propagation or fingerprinting
+models.  Then location is estimated on a spatial connectivity graph; each
+motion update step of the Bayesian filter moves the user along an edge of this
+graph.  These probabilistic methods are powerful but suffers the drawback of
+potential high computational complexity inherent in the particle filters method
+whose worst-case complexity grows exponentially in dimensions of the state
+space.  Moreover, all these above-mentioned approaches all require an initial
+training phase, and therefore are not online and ad-hoc.
+
