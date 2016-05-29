@@ -48,14 +48,10 @@
 % make the title area
 \maketitle
 
-\linespread{1.0}
+\linespread{1.02}
 \selectfont
 
-% As a general rule, do not put math, special symbols or citations
-% in the abstract
-\begin{abstract}
-    \input{abstract}
-\end{abstract}
+\input{abstract}
 
 % For peerreview papers, this IEEEtran command inserts a page break and
 % creates the second title. It will be ignored for other modes.
@@ -66,6 +62,9 @@
 \input{intro}
 \input{relatedwork}
 \input{hierarchical-clustering}
+\input{conclusion}
+
+\newpage
 
 % conference papers do not normally have an appendix
 \bibliographystyle{abbrv}
