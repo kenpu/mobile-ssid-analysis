@@ -47,7 +47,7 @@ var sim_scale = d3.scale.linear()
 *************************************************/
 
 // SVG properties
-var width = 960;
+var width = 1080;
 var height = 600;
 var padding = 40;
 
@@ -74,7 +74,7 @@ var svg = d3.select("body").append("svg")
 *
 *************************************************/
 
-d3.json("../json_/hierarchy.json", function(error, data) {
+d3.json("json/hierarchy.json", function(error, data) {
     if (error) throw error;
 
     root = data;
